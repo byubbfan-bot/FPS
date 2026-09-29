@@ -3,759 +3,798 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Road to Cooperstown: 8-Bit Baseball RPG</title>
+    <title>Pokémon Baseball: Road to the Show (Game Boy Edition)</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
+            image-rendering: pixelated;
         }
         body {
-            background: #090c10;
-            color: #f0f6fc;
-            font-family: 'Courier New', Courier, monospace;
+            background: #111;
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #9bbc0f;
         }
-        #game-frame {
-            position: relative;
-            border: 4px solid #30363d;
-            border-radius: 8px;
-            background: #000;
-            box-shadow: 0 10px 30px rgba(0, 206, 203, 0.25);
-            width: 640px;
-            height: 480px;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            image-rendering: pixelated;
-        }
-        /* Dialogue & RPG UI Overlays */
-        #dialogue-box {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            height: 110px;
-            background: rgba(13, 17, 23, 0.95);
-            border: 3px solid #00cecb;
-            border-radius: 6px;
-            padding: 12px 16px;
-            display: none;
+        /* Handheld Bezel */
+        .gameboy-chassis {
+            background: #c4bebb;
+            padding: 24px 24px 34px 24px;
+            border-radius: 16px 16px 50px 16px;
+            box-shadow: 0 12px 0 #8b8582, 0 20px 30px rgba(0,0,0,0.8);
+            border: 2px solid #ded8d5;
+            display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            z-index: 10;
-        }
-        #dialogue-speaker {
-            color: #e3b341;
-            font-weight: bold;
-            font-size: 15px;
-            text-transform: uppercase;
-        }
-        #dialogue-text {
-            font-size: 14px;
-            line-height: 1.4;
-            color: #fff;
-        }
-        #dialogue-prompt {
-            font-size: 11px;
-            color: #8b949e;
-            align-self: flex-end;
-            animation: blink 0.8s infinite alternate;
-        }
-        /* Battle HUD Overlay */
-        #battle-ui {
-            position: absolute;
-            inset: 0;
-            background: #0d1117;
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 16px;
-            z-index: 20;
-        }
-        .battle-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .pokemon-hud {
-            background: #161b22;
-            border: 2px solid #30363d;
-            border-radius: 6px;
-            padding: 10px 14px;
-            width: 250px;
-        }
-        .hud-name {
-            font-weight: bold;
-            color: #00cecb;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .hp-bar-bg {
-            background: #21262d;
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 6px;
-            overflow: hidden;
-            border: 1px solid #30363d;
-        }
-        .hp-fill {
-            height: 100%;
-            background: #2ea043;
-            width: 100%;
-            transition: width 0.3s;
-        }
-        .battle-arena {
-            flex: 1;
-            display: flex;
             align-items: center;
-            justify-content: space-around;
-            position: relative;
         }
-        .battle-sprite {
-            width: 96px;
-            height: 96px;
-            image-rendering: pixelated;
+        .screen-bezel {
+            background: #77747f;
+            padding: 20px 24px 24px 24px;
+            border-radius: 8px 8px 30px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .battle-menu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            background: #161b22;
-            border: 2px solid #00cecb;
-            padding: 10px;
-            border-radius: 6px;
-            height: 110px;
-        }
-        .battle-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #fff;
-            font-family: inherit;
+        .screen-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #b8b5bf;
             font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.15s;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
-        .battle-btn:hover {
-            background: #30363d;
-            border-color: #00cecb;
+        .battery-led {
+            width: 8px;
+            height: 8px;
+            background: #ff3b30;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px #ff3b30;
+            margin-right: 4px;
         }
-        #battle-log {
-            font-size: 13px;
-            color: #e3b341;
-            padding: 4px;
-            grid-column: span 2;
-            align-self: center;
+        /* Authentic 160x144 Game Boy Resolution scaled up 3x */
+        canvas {
+            background: #9bbc0f;
+            width: 480px;
+            height: 432px;
+            display: block;
+            border: 3px solid #0f380f;
+            box-shadow: inset 0 0 8px rgba(15, 56, 15, 0.4);
         }
-        /* Mobile / Touch Controls */
-        #touch-controls {
-            display: none;
-            margin-top: 15px;
-            gap: 20px;
+        /* Game Boy Controls */
+        .controls-row {
+            width: 100%;
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
         }
-        @media (max-width: 680px) {
-            #game-frame {
-                width: 100vw;
-                height: 75vw;
-            }
-            #touch-controls {
-                display: flex;
-            }
-        }
-        .d-pad {
+        .dpad {
             display: grid;
-            grid-template-columns: repeat(3, 45px);
-            grid-template-rows: repeat(3, 45px);
-            gap: 4px;
-        }
-        .d-btn {
-            background: #21262d;
-            border: 2px solid #30363d;
-            color: #fff;
+            grid-template-columns: repeat(3, 34px);
+            grid-template-rows: repeat(3, 34px);
+            background: #2b2b2b;
+            padding: 3px;
             border-radius: 6px;
+            box-shadow: 0 4px 0 #111;
+        }
+        .dpad-btn {
+            background: #2b2b2b;
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+        .dpad-btn:active {
+            background: #111;
+        }
+        .btn-ab-group {
+            display: flex;
+            gap: 16px;
+            transform: rotate(-25deg);
+        }
+        .gb-round-btn {
+            background: #8b1d42;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 0 #540e25;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            touch-action: manipulation;
         }
-        .d-btn:active { background: #00cecb; color: #000; }
-        .instructions {
-            margin-top: 10px;
-            color: #8b949e;
+        .gb-round-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #540e25;
+        }
+        .keyboard-hint {
+            margin-top: 15px;
             font-size: 12px;
+            color: #888;
             text-align: center;
-        }
-        @keyframes blink {
-            from { opacity: 0.2; }
-            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div id="game-frame">
-        <canvas id="screen" width="640" height="480"></canvas>
-        
-        <!-- Top-Down Interaction Dialogue Box -->
-        <div id="dialogue-box">
-            <div id="dialogue-speaker">Coach Miller</div>
-            <div id="dialogue-text">Welcome to the Single-A facility, Kid! Step on the diamond to face the pitcher.</div>
-            <div id="dialogue-prompt">Press [SPACE] or [A] to continue</div>
+<div class="gameboy-chassis">
+    <div class="screen-bezel">
+        <div class="screen-header">
+            <div><span class="battery-led"></span>BATTERY</div>
+            <div>DOT MATRIX WITH STEREO SOUND</div>
         </div>
-
-        <!-- Pokemon-Style Battle System -->
-        <div id="battle-ui">
-            <div class="battle-top">
-                <div class="pokemon-hud">
-                    <div class="hud-name">
-                        <span id="opp-name">Ace Pitcher</span>
-                        <span id="opp-level">Lv. 15</span>
-                    </div>
-                    <div style="font-size:11px; color:#8b949e; margin-top:4px;">STAMINA</div>
-                    <div class="hp-bar-bg"><div id="opp-hp" class="hp-fill"></div></div>
-                </div>
-
-                <div class="pokemon-hud">
-                    <div class="hud-name">
-                        <span id="player-hud-name">Kid Carter</span>
-                        <span id="player-tier-lbl">Single-A</span>
-                    </div>
-                    <div style="font-size:11px; color:#8b949e; margin-top:4px;">COUNT / ENERGY</div>
-                    <div class="hp-bar-bg"><div id="player-hp" class="hp-fill"></div></div>
-                    <div id="count-display" style="font-size:12px; color:#e3b341; margin-top:4px; font-weight:bold;">Count: 0-0</div>
-                </div>
-            </div>
-
-            <div class="battle-arena">
-                <canvas id="player-sprite-canvas" class="battle-sprite" width="96" height="96"></canvas>
-                <canvas id="pitcher-sprite-canvas" class="battle-sprite" width="96" height="96"></canvas>
-            </div>
-
-            <div class="battle-menu" id="battle-btn-grid">
-                <button class="battle-btn" onclick="battleAction('contact')">⚔️ Contact Swing</button>
-                <button class="battle-btn" onclick="battleAction('power')">💥 Power Swing</button>
-                <button class="battle-btn" onclick="battleAction('take')">👁️ Take Pitch</button>
-                <button class="battle-btn" onclick="battleAction('bunt')">⚡ Drag Bunt</button>
-            </div>
-            <div id="battle-log" style="display:none;"></div>
-        </div>
+        <canvas id="gb-screen" width="160" height="144"></canvas>
     </div>
 
-    <!-- On-screen controls for mobile/tablet -->
-    <div id="touch-controls">
-        <div class="d-pad">
-            <div></div><button class="d-btn" id="btn-up">▲</button><div></div>
-            <button class="d-btn" id="btn-left">◀</button><div></div><button class="d-btn" id="btn-right">▶</button>
-            <div></div><button class="d-btn" id="btn-down">▼</button><div></div>
+    <div class="controls-row">
+        <!-- D-PAD -->
+        <div class="dpad">
+            <div></div><button class="dpad-btn" id="ctrl-up"></button><div></div>
+            <button class="dpad-btn" id="ctrl-left"></button><div></div><button class="dpad-btn" id="ctrl-right"></button>
+            <div></div><button class="dpad-btn" id="ctrl-down"></button><div></div>
         </div>
-        <div style="display:flex; flex-direction:column; justify-content:center; gap:10px;">
-            <button class="d-btn" id="btn-act" style="width:70px; height:50px; font-weight:bold;">A / TALK</button>
-        </div>
-    </div>
 
-    <div class="instructions">
-        <strong>Controls:</strong> [W,A,S,D] or [Arrow Keys] to Walk | [Space] or [Enter] to Interact / Talk / Confirm
+        <!-- A & B Buttons -->
+        <div class="btn-ab-group">
+            <button class="gb-round-btn" id="ctrl-b">B</button>
+            <button class="gb-round-btn" id="ctrl-a">A</button>
+        </div>
     </div>
+</div>
+
+<div class="keyboard-hint">
+    <strong>Keyboard Controls:</strong> [W,A,S,D] or [Arrows] = Walk | [Z] or [Enter] = <strong>A</strong> Button | [X] or [Backspace] = <strong>B</strong> Button
+</div>
 
 <script>
-/* --- GAME ARCHITECTURE & STATE --- */
-const TILE_SIZE = 32;
-const MAP_COLS = 20;
-const MAP_ROWS = 15;
+/* ==========================================================================
+   GAME BOY COLOR PALETTE & AUDIO SYNTHESIZER
+   ========================================================================== */
+const C_DARKEST = "#0f380f"; // Primary outline & text
+const C_DARK    = "#306230"; // Deep shadow / walls
+const C_LIGHT   = "#8bac0f"; // Ground / UI fills
+const C_LIGHTEST= "#9bbc0f"; // Background highlight
 
-const canvas = document.getElementById("screen");
+const canvas = document.getElementById("gb-screen");
 const ctx = canvas.getContext("2d");
 
-let gameState = "OVERWORLD"; // OVERWORLD, DIALOGUE, BATTLE
-let activeDialogue = null;
-let dialogueQueue = [];
+// Web Audio API 8-Bit Beeper
+let audioCtx = null;
+function play8BitTone(freq, duration, type = "square") {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+}
 
-// Player RPG Stats
+/* ==========================================================================
+   PLAYER & RPG STATE
+   ========================================================================== */
 const player = {
-    x: 5 * TILE_SIZE,
-    y: 7 * TILE_SIZE,
-    speed: 3,
-    direction: "down", // up, down, left, right
-    moving: false,
-    name: "Kid Carter",
-    tier: 0, // 0: Single-A, 1: Double-A, 2: Triple-A, 3: The Show
-    xp: 0,
-    contact: 50,
-    power: 45,
-    discipline: 45,
-    energy: 100,
-    wins: 0
+    tileX: 4,
+    tileY: 4,
+    pixelX: 4 * 16,
+    pixelY: 4 * 16,
+    dir: "down",
+    isMoving: false,
+    walkFrame: 0,
+    // RPG Stats
+    name: "RED",
+    badgeTier: 0, // 0: Single-A, 1: Double-A, 2: Triple-A, 3: The Show (Champion)
+    hp: 20,
+    maxHp: 20,
+    exp: 0,
+    level: 5,
+    contact: 12,
+    power: 10,
+    eye: 11
 };
 
-const TIERS = [
-    { name: "Single-A Ball", rival: "Fireball Fleming", rivalLv: "Lv. 15", reqXp: 100, pitchDiff: 45 },
-    { name: "Double-A Ball", rival: "Slider Santana", rivalLv: "Lv. 35", reqXp: 250, pitchDiff: 60 },
-    { name: "Triple-A Ball", rival: "K-Doctor Davis", rivalLv: "Lv. 60", reqXp: 500, pitchDiff: 75 },
-    { name: "The Major Leagues", rival: "Gerrit Cy Young", rivalLv: "Lv. 99", reqXp: 1000, pitchDiff: 92 }
+const LEAGUE_BADGES = [
+    { name: "Single-A Ace", leader: "BROCK", lv: 7, hp: 25, badge: "BOULDER PIN" },
+    { name: "Double-A Ace", leader: "MISTY", lv: 14, hp: 45, badge: "CASCADE PIN" },
+    { name: "Triple-A Ace", leader: "SURGE", lv: 24, hp: 75, badge: "THUNDER PIN" },
+    { name: "The Show GM",  leader: "GIOVANNI", lv: 40, hp: 120, badge: "EARTH PIN" }
 ];
 
-/* --- OVERWORLD MAP DATA (Tile Codes) ---
+/* ==========================================================================
+   TILEMAP (16x16 Tiles, 10x9 Viewport)
    0: Grass
-   1: Dirt Path / Diamond
-   2: Wall / Fence (Solid)
-   3: Wooden Floor (Training Center)
-   4: Dugout Bench
-   5: Pitcher Mound (Encounter Tile)
-*/
-const WORLD_MAP = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,3,3,3,2,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2],
-    [2,3,3,3,2,0,0,0,0,0,2,1,0,0,1,0,0,0,1,2],
-    [2,3,3,3,2,0,4,4,4,0,2,1,0,5,1,0,0,0,1,2],
-    [2,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,2],
-    [2,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,2],
-    [2,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,2],
-    [2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
-    [2,0,1,0,0,2,2,3,3,2,2,0,0,0,0,0,0,0,0,2],
-    [2,0,1,1,1,2,3,3,3,3,2,0,0,0,4,4,4,0,0,2],
-    [2,0,0,0,1,2,3,3,3,3,2,0,0,0,0,0,0,0,0,2],
-    [2,0,0,0,1,2,2,0,0,2,2,0,0,0,0,0,0,0,0,2],
-    [2,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,2],
-    [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+   1: Dirt Path
+   2: Facility Wall (Solid)
+   3: Bullpen Grass (Wild Pitcher Encounter)
+   4: Gym Leader / Ace Mound
+   5: Roof / Sign
+   ========================================================================== */
+const MAP_W = 14;
+const MAP_H = 14;
+const OVERWORLD_MAP = [
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,5,5,2,1,1,1,1,1,1,2,5,5,2],
+    [2,2,2,2,1,0,0,0,0,1,2,2,2,2],
+    [2,1,1,1,1,0,4,0,0,1,1,1,1,2],
+    [2,1,0,0,1,0,0,0,0,1,0,0,1,2],
+    [2,1,0,3,3,3,3,3,0,1,0,0,1,2],
+    [2,1,0,3,3,3,3,3,0,1,1,1,1,2],
+    [2,1,1,1,1,1,1,1,1,1,0,0,1,2],
+    [2,0,0,1,0,0,0,0,1,1,0,0,1,2],
+    [2,0,0,1,0,2,2,0,1,1,1,1,1,2],
+    [2,3,3,1,0,2,2,0,1,0,0,0,1,2],
+    [2,3,3,1,1,1,1,1,1,0,0,0,1,2],
+    [2,0,0,0,0,0,0,0,0,0,0,0,0,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2]
 ];
 
-// NPCs in the overworld
-const NPCS = [
-    {
-        name: "Coach Miller",
-        x: 6 * TILE_SIZE,
-        y: 4 * TILE_SIZE,
-        color: "#e3b341",
-        lines: [
-            "Welcome to the clubhouse, kid!",
-            "Head north onto the diamond to take on opposing pitchers in live counts.",
-            "Use the batting cages or weight room to build up your stats if you get stuck!"
-        ]
-    },
-    {
-        name: "Scout Henderson",
-        x: 8 * TILE_SIZE,
-        y: 10 * TILE_SIZE,
-        color: "#a371f7",
-        lines: [
-            "I'm tracking your progress for the front office.",
-            "Win encounters on the mound to gain XP and earn a promotion call-up!"
-        ]
-    },
-    {
-        name: "Cage Instructor",
-        x: 2 * TILE_SIZE,
-        y: 2 * TILE_SIZE,
-        color: "#f85149",
-        action: "TRAIN_CONTACT",
-        lines: [
-            "Grab that 33-inch maple bat! Let's work on bat speed.",
-            "Contact rating increased by +2! Energy -10."
-        ]
-    }
-];
+function isTileBlocked(tx, ty) {
+    if (tx < 0 || tx >= MAP_W || ty < 0 || ty >= MAP_H) return true;
+    const tile = OVERWORLD_MAP[ty][tx];
+    return tile === 2 || tile === 5;
+}
 
-/* --- INPUT HANDLING --- */
-const keys = {};
+/* ==========================================================================
+   GAME ENGINE STATE MACHINE
+   OVERWORLD, DIALOGUE, BATTLE_TRANSITION, BATTLE
+   ========================================================================== */
+let gameState = "OVERWORLD";
+let transitionTimer = 0;
 
-window.addEventListener("keydown", e => {
-    keys[e.key.toLowerCase()] = true;
-    if (e.key === " " || e.key === "Enter") {
-        handleInteractButton();
-    }
-});
-window.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
-});
+// Dialogue
+let dialogueText = "";
+let dialogueIdx = 0;
+let dialogueCallback = null;
 
-// Mobile button listeners
-function bindTouch(id, keyName) {
+function showDialogue(text, cb = null) {
+    gameState = "DIALOGUE";
+    dialogueText = text;
+    dialogueIdx = 0;
+    dialogueCallback = cb;
+    play8BitTone(600, 0.05);
+}
+
+// Battle State
+const battle = {
+    oppName: "",
+    oppLv: 1,
+    oppHp: 1,
+    oppMaxHp: 1,
+    isGymLeader: false,
+    balls: 0,
+    strikes: 0,
+    cursor: 0, // 0: FIGHT, 1: EYE, 2: ITEM, 3: RUN
+    subCursor: 0,
+    phase: "MENU", // MENU, SUB_FIGHT, TEXT, OPP_TURN
+    logText: "",
+    logCb: null
+};
+
+/* ==========================================================================
+   INPUT HANDLING (Gamepad + Keyboard)
+   ========================================================================== */
+const keys = { up: false, down: false, left: false, right: false, a: false, b: false };
+
+function handleKeyDown(k) {
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    if (k === "ArrowUp" || k === "w") keys.up = true;
+    if (k === "ArrowDown" || k === "s") keys.down = true;
+    if (k === "ArrowLeft" || k === "a") keys.left = true;
+    if (k === "ArrowRight" || k === "d") keys.right = true;
+    if (k === "z" || k === "Enter" || k === " ") pressA();
+    if (k === "x" || k === "Backspace") pressB();
+}
+
+function handleKeyUp(k) {
+    if (k === "ArrowUp" || k === "w") keys.up = false;
+    if (k === "ArrowDown" || k === "s") keys.down = false;
+    if (k === "ArrowLeft" || k === "a") keys.left = false;
+    if (k === "ArrowRight" || k === "d") keys.right = false;
+}
+
+window.addEventListener("keydown", e => handleKeyDown(e.key));
+window.addEventListener("keyup", e => handleKeyUp(e.key));
+
+// Touch / Button Clicks
+function bindBtn(id, pressFn) {
     const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[keyName] = true; });
-    el.addEventListener("touchend", (e) => { e.preventDefault(); keys[keyName] = false; });
+    el.addEventListener("mousedown", pressFn);
+    el.addEventListener("touchstart", (e) => { e.preventDefault(); pressFn(); });
 }
-bindTouch("btn-up", "arrowup");
-bindTouch("btn-down", "arrowdown");
-bindTouch("btn-left", "arrowleft");
-bindTouch("btn-right", "arrowright");
-document.getElementById("btn-act").addEventListener("click", handleInteractButton);
+bindBtn("ctrl-up", () => { keys.up = true; setTimeout(() => keys.up = false, 120); });
+bindBtn("ctrl-down", () => { keys.down = true; setTimeout(() => keys.down = false, 120); });
+bindBtn("ctrl-left", () => { keys.left = true; setTimeout(() => keys.left = false, 120); });
+bindBtn("ctrl-right", () => { keys.right = true; setTimeout(() => keys.right = false, 120); });
+bindBtn("ctrl-a", pressA);
+bindBtn("ctrl-b", pressB);
 
-function handleInteractButton() {
+function pressA() {
+    play8BitTone(700, 0.04);
     if (gameState === "DIALOGUE") {
-        advanceDialogue();
+        if (dialogueIdx < dialogueText.length) {
+            dialogueIdx = dialogueText.length; // Skip typewriter
+        } else {
+            gameState = "OVERWORLD";
+            if (dialogueCallback) dialogueCallback();
+        }
     } else if (gameState === "OVERWORLD") {
-        checkNpcInteraction();
+        checkOverworldInteract();
+    } else if (gameState === "BATTLE") {
+        handleBattleConfirm();
     }
 }
 
-/* --- OVERWORLD ENGINE --- */
-function isSolid(x, y) {
-    const col = Math.floor(x / TILE_SIZE);
-    const row = Math.floor(y / TILE_SIZE);
-    if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
-    const tile = WORLD_MAP[row][col];
-    return tile === 2 || tile === 4; // Wall or Bench
-}
-
-function updateOverworld() {
-    if (gameState !== "OVERWORLD") return;
-
-    let dx = 0;
-    let dy = 0;
-
-    if (keys["w"] || keys["arrowup"]) { dy -= player.speed; player.direction = "up"; }
-    else if (keys["s"] || keys["arrowdown"]) { dy += player.speed; player.direction = "down"; }
-    else if (keys["a"] || keys["arrowleft"]) { dx -= player.speed; player.direction = "left"; }
-    else if (keys["d"] || keys["arrowright"]) { dx += player.speed; player.direction = "right"; }
-
-    player.moving = (dx !== 0 || dy !== 0);
-
-    // Bounding Box Collision
-    const margin = 6;
-    const newX = player.x + dx;
-    const newY = player.y + dy;
-
-    if (!isSolid(newX + margin, player.y + margin) && !isSolid(newX + TILE_SIZE - margin, player.y + TILE_SIZE - margin)) {
-        player.x = newX;
-    }
-    if (!isSolid(player.x + margin, newY + margin) && !isSolid(player.x + TILE_SIZE - margin, newY + TILE_SIZE - margin)) {
-        player.y = newY;
-    }
-
-    // Check Mound Encounter Tile
-    const centerCol = Math.floor((player.x + TILE_SIZE / 2) / TILE_SIZE);
-    const centerRow = Math.floor((player.y + TILE_SIZE / 2) / TILE_SIZE);
-    if (WORLD_MAP[centerRow][centerCol] === 5) {
-        startBattleTransition();
+function pressB() {
+    play8BitTone(300, 0.04);
+    if (gameState === "BATTLE" && battle.phase === "SUB_FIGHT") {
+        battle.phase = "MENU";
     }
 }
 
-function checkNpcInteraction() {
-    let checkX = player.x;
-    let checkY = player.y;
-    const reach = 24;
+/* ==========================================================================
+   OVERWORLD LOGIC
+   ========================================================================== */
+function checkOverworldInteract() {
+    let tx = player.tileX;
+    let ty = player.tileY;
+    if (player.dir === "up") ty--;
+    if (player.dir === "down") ty++;
+    if (player.dir === "left") tx--;
+    if (player.dir === "right") tx++;
 
-    if (player.direction === "up") checkY -= reach;
-    if (player.direction === "down") checkY += reach;
-    if (player.direction === "left") checkX -= reach;
-    if (player.direction === "right") checkX += reach;
-
-    for (let npc of NPCS) {
-        const dist = Math.hypot((npc.x) - checkX, (npc.y) - checkY);
-        if (dist < 32) {
-            triggerDialogue(npc);
+    if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
+        let t = OVERWORLD_MAP[ty][tx];
+        if (t === 4) {
+            const badge = LEAGUE_BADGES[player.badgeTier];
+            showDialogue(`ACE ${badge.leader}: You want the ${badge.badge}!? Step into the box!`, () => {
+                startBattle(badge.leader, badge.lv, badge.hp, true);
+            });
+            return;
+        } else if (t === 5) {
+            showDialogue("CLUBHOUSE: Rest here to recover Batter HP!");
+            player.hp = player.maxHp;
             return;
         }
     }
 }
 
-function triggerDialogue(npc) {
-    gameState = "DIALOGUE";
-    activeDialogue = npc;
-    dialogueQueue = [...npc.lines];
-    document.getElementById("dialogue-speaker").innerText = npc.name;
-    document.getElementById("dialogue-box").style.display = "flex";
-    advanceDialogue();
+function updateOverworld() {
+    if (gameState !== "OVERWORLD") return;
 
-    // Trigger stat training actions
-    if (npc.action === "TRAIN_CONTACT") {
-        player.contact += 2;
-        player.energy = Math.max(10, player.energy - 10);
-    }
-}
+    if (!player.isMoving) {
+        let targetX = player.tileX;
+        let targetY = player.tileY;
 
-function advanceDialogue() {
-    if (dialogueQueue.length > 0) {
-        document.getElementById("dialogue-text").innerText = dialogueQueue.shift();
+        if (keys.up) { player.dir = "up"; targetY--; }
+        else if (keys.down) { player.dir = "down"; targetY++; }
+        else if (keys.left) { player.dir = "left"; targetX--; }
+        else if (keys.right) { player.dir = "right"; targetX++; }
+
+        if (targetX !== player.tileX || targetY !== player.tileY) {
+            if (!isTileBlocked(targetX, targetY)) {
+                player.tileX = targetX;
+                player.tileY = targetY;
+                player.isMoving = true;
+            }
+        }
     } else {
-        document.getElementById("dialogue-box").style.display = "none";
-        gameState = "OVERWORLD";
-    }
-}
+        // Smooth pixel interpolation
+        const step = 2;
+        const targetPx = player.tileX * 16;
+        const targetPy = player.tileY * 16;
 
-/* --- RENDERING: TOP-DOWN RETRO WORLD --- */
-function drawOverworld() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (player.pixelX < targetPx) player.pixelX = Math.min(targetPx, player.pixelX + step);
+        if (player.pixelX > targetPx) player.pixelX = Math.max(targetPx, player.pixelX - step);
+        if (player.pixelY < targetPy) player.pixelY = Math.min(targetPy, player.pixelY + step);
+        if (player.pixelY > targetPy) player.pixelY = Math.max(targetPy, player.pixelY - step);
 
-    // Draw Map Tiles
-    for (let r = 0; r < MAP_ROWS; r++) {
-        for (let c = 0; c < MAP_COLS; c++) {
-            const tile = WORLD_MAP[r][c];
-            const px = c * TILE_SIZE;
-            const py = r * TILE_SIZE;
+        player.walkFrame++;
 
-            if (tile === 0) {
-                // Grass
-                ctx.fillStyle = (r + c) % 2 === 0 ? "#1b4d3e" : "#163d31";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-            } else if (tile === 1) {
-                // Dirt
-                ctx.fillStyle = "#8a5d3b";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-            } else if (tile === 2) {
-                // Stadium Wall
-                ctx.fillStyle = "#21262d";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-                ctx.strokeStyle = "#30363d";
-                ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
-            } else if (tile === 3) {
-                // Wood Gym floor
-                ctx.fillStyle = "#b07d4b";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-                ctx.strokeStyle = "#85582f";
-                ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
-            } else if (tile === 4) {
-                // Dugout bench
-                ctx.fillStyle = "#0c2340";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-            } else if (tile === 5) {
-                // Pitcher's rubber
-                ctx.fillStyle = "#a87148";
-                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(px + 10, py + 12, 12, 6);
+        if (player.pixelX === targetPx && player.pixelY === targetPy) {
+            player.isMoving = false;
+            // Check wild grass encounter
+            const currentTile = OVERWORLD_MAP[player.tileY][player.tileX];
+            if (currentTile === 3 && Math.random() < 0.22) {
+                play8BitTone(880, 0.2, "sawtooth");
+                startBattle("RIVAL RELIEVER", player.level + Math.floor(Math.random()*2), 16 + player.level * 3, false);
             }
         }
     }
-
-    // Draw NPCs
-    for (let npc of NPCS) {
-        drawPixelCharacter(ctx, npc.x, npc.y, npc.color, "down");
-        // Name tag
-        ctx.fillStyle = "#fff";
-        ctx.font = "9px monospace";
-        ctx.fillText(npc.name, npc.x - 8, npc.y - 4);
-    }
-
-    // Draw Player
-    drawPixelCharacter(ctx, player.x, player.y, "#00cecb", player.direction);
-
-    // Top-left HUD badge
-    ctx.fillStyle = "rgba(13, 17, 23, 0.85)";
-    ctx.fillRect(8, 8, 220, 48);
-    ctx.strokeStyle = "#00cecb";
-    ctx.strokeRect(8, 8, 220, 48);
-    ctx.fillStyle = "#e3b341";
-    ctx.font = "bold 11px monospace";
-    ctx.fillText(`${player.name} (${TIERS[player.tier].name})`, 16, 24);
-    ctx.fillStyle = "#8b949e";
-    ctx.fillText(`XP: ${player.xp}/${TIERS[player.tier].reqXp} | Energy: ${player.energy}%`, 16, 42);
 }
 
-// 8-Bit Pixel Character Generator
-function drawPixelCharacter(c, x, y, capColor, dir) {
-    c.fillStyle = capColor;
-    c.fillRect(x + 8, y + 4, 16, 10); // Cap / Head
-    c.fillStyle = "#dfa070";
-    c.fillRect(x + 10, y + 10, 12, 8); // Face
-
-    // Eye directions
-    c.fillStyle = "#000";
-    if (dir === "down") {
-        c.fillRect(x + 11, y + 13, 2, 2);
-        c.fillRect(x + 19, y + 13, 2, 2);
-    } else if (dir === "left") {
-        c.fillRect(x + 9, y + 13, 2, 2);
-    } else if (dir === "right") {
-        c.fillRect(x + 21, y + 13, 2, 2);
-    }
-
-    // Jersey Body
-    c.fillStyle = "#ffffff";
-    c.fillRect(x + 6, y + 18, 20, 10);
-    // Pants / Legs
-    c.fillStyle = "#30363d";
-    c.fillRect(x + 8, y + 28, 6, 4);
-    c.fillRect(x + 18, y + 28, 6, 4);
+/* ==========================================================================
+   POKÉMON TURN-BASED BATTER BATTLE SYSTEM
+   ========================================================================== */
+function startBattle(oppName, lv, hp, isGymLeader) {
+    gameState = "BATTLE_TRANSITION";
+    transitionTimer = 0;
+    battle.oppName = oppName;
+    battle.oppLv = lv;
+    battle.oppHp = hp;
+    battle.oppMaxHp = hp;
+    battle.isGymLeader = isGymLeader;
+    battle.balls = 0;
+    battle.strikes = 0;
+    battle.cursor = 0;
+    battle.subCursor = 0;
+    battle.phase = "MENU";
 }
 
-/* --- POKÉMON BATTLE ENGINE --- */
-let battleState = {
-    oppHp: 100,
-    balls: 0,
-    strikes: 0,
-    active: false
-};
-
-function startBattleTransition() {
-    gameState = "BATTLE";
-    player.y += 36; // Step player back from encounter tile
-
-    const tierInfo = TIERS[player.tier];
-    document.getElementById("opp-name").innerText = tierInfo.rival;
-    document.getElementById("opp-level").innerText = tierInfo.rivalLv;
-    document.getElementById("player-tier-lbl").innerText = tierInfo.name;
-
-    battleState.oppHp = 100;
-    battleState.balls = 0;
-    battleState.strikes = 0;
-    battleState.active = true;
-
-    drawBattleSprites();
-    updateBattleHUD();
-
-    document.getElementById("battle-ui").style.display = "flex";
-    showBattleLog(`An opposing ace (${tierInfo.rival}) challenged you to an at-bat!`);
-}
-
-function drawBattleSprites() {
-    const pCanvas = document.getElementById("player-sprite-canvas");
-    const pCtx = pCanvas.getContext("2d");
-    pCtx.clearRect(0, 0, 96, 96);
-    // Draw back-facing batter
-    pCtx.fillStyle = "#00cecb";
-    pCtx.fillRect(28, 12, 40, 32); // Helmet
-    pCtx.fillStyle = "#ffffff";
-    pCtx.fillRect(20, 44, 56, 40); // Jersey back
-    pCtx.fillStyle = "#e3b341";
-    pCtx.fillRect(72, 20, 10, 50); // Wooden bat cocked back
-
-    const oCanvas = document.getElementById("pitcher-sprite-canvas");
-    const oCtx = oCanvas.getContext("2d");
-    oCtx.clearRect(0, 0, 96, 96);
-    // Draw front-facing pitcher
-    oCtx.fillStyle = "#f85149";
-    oCtx.fillRect(32, 10, 32, 24); // Cap
-    oCtx.fillStyle = "#dfa070";
-    oCtx.fillRect(36, 24, 24, 18); // Face
-    oCtx.fillStyle = "#21262d";
-    oCtx.fillRect(24, 42, 48, 38); // Rival Jersey
-    oCtx.fillStyle = "#8a5d3b";
-    oCtx.fillRect(16, 48, 14, 14); // Glove
-}
-
-function updateBattleHUD() {
-    document.getElementById("opp-hp").style.width = `${battleState.oppHp}%`;
-    document.getElementById("player-hp").style.width = `${player.energy}%`;
-    document.getElementById("count-display").innerText = `Count: ${battleState.balls} - ${battleState.strikes}`;
-}
-
-function showBattleLog(text) {
-    const log = document.getElementById("battle-log");
-    const grid = document.getElementById("battle-btn-grid");
-    grid.style.display = "none";
-    log.style.display = "block";
-    log.innerText = text;
-
-    setTimeout(() => {
-        if (battleState.active) {
-            grid.style.display = "grid";
-            log.style.display = "none";
-        }
-    }, 1200);
-}
-
-function battleAction(action) {
-    if (!battleState.active) return;
-    const diff = TIERS[player.tier].pitchDiff;
-
-    if (action === "take") {
-        const inZone = Math.random() < 0.60;
-        if (!inZone) {
-            battleState.balls++;
-            showBattleLog("Great eye! Ball outside the strike zone.");
+function handleBattleConfirm() {
+    if (battle.phase === "TEXT") {
+        if (battle.logCb) {
+            let cb = battle.logCb;
+            battle.logCb = null;
+            cb();
         } else {
-            battleState.strikes++;
-            showBattleLog("Called strike right down the heart!");
+            battle.phase = "MENU";
         }
-    } else if (action === "contact" || action === "power") {
-        const isPower = action === "power";
-        const stat = isPower ? player.power : player.contact;
-        const roll = stat + Math.floor(Math.random() * 40) - (isPower ? 18 : 6);
-
-        if (roll < diff) {
-            battleState.strikes++;
-            showBattleLog("Swing and a miss! Whiffed on the breaking ball.");
-        } else {
-            const damage = isPower ? 55 : 30;
-            battleState.oppHp = Math.max(0, battleState.oppHp - damage);
-            const hitType = isPower ? "CRUSHED extra-base missile!" : "Sharp lined single!";
-            showBattleLog(`${hitType} Rival pitcher's composure drops!`);
-        }
-    } else if (action === "bunt") {
-        if (player.speed > 55) {
-            battleState.oppHp = Math.max(0, battleState.oppHp - 35);
-            showBattleLog("Perfect drag bunt down the third base line! Safe!");
-        } else {
-            battleState.strikes++;
-            showBattleLog("Popped up the bunt into foul territory. Strike!");
-        }
+        return;
     }
 
-    updateBattleHUD();
-    checkBattleEnd();
-}
-
-function checkBattleEnd() {
-    if (battleState.oppHp <= 0) {
-        battleState.active = false;
-        player.xp += 40;
-        player.wins++;
-        showBattleLog("💥 KNOCKOUT HIT! You dominated the at-bat!");
-
-        setTimeout(() => {
-            document.getElementById("battle-ui").style.display = "none";
-            gameState = "OVERWORLD";
-            checkPromotionCallUp();
-        }, 1500);
-    } else if (battleState.strikes >= 3) {
-        battleState.active = false;
-        player.energy = Math.max(10, player.energy - 15);
-        showBattleLog("STRIKE THREE! Down on strikes. Take a breath.");
-
-        setTimeout(() => {
-            document.getElementById("battle-ui").style.display = "none";
-            gameState = "OVERWORLD";
-        }, 1500);
-    } else if (battleState.balls >= 4) {
-        battleState.active = false;
-        player.xp += 25;
-        showBattleLog("BALL FOUR! Drew the walk and earned coach praise.");
-
-        setTimeout(() => {
-            document.getElementById("battle-ui").style.display = "none";
-            gameState = "OVERWORLD";
-            checkPromotionCallUp();
-        }, 1500);
+    if (battle.phase === "MENU") {
+        if (battle.cursor === 0) { // FIGHT
+            battle.phase = "SUB_FIGHT";
+            battle.subCursor = 0;
+        } else if (battle.cursor === 1) { // TAKE PITCH
+            executeBatterMove("TAKE");
+        } else if (battle.cursor === 2) { // BUNT
+            executeBatterMove("BUNT");
+        } else if (battle.cursor === 3) { // RUN
+            if (battle.isGymLeader) {
+                setBattleText("Can't forfeit a sanctioned League Match!");
+            } else {
+                setBattleText("Got away safely back to the dugout!", () => {
+                    gameState = "OVERWORLD";
+                });
+            }
+        }
+    } else if (battle.phase === "SUB_FIGHT") {
+        if (battle.subCursor === 0) executeBatterMove("CONTACT");
+        else if (battle.subCursor === 1) executeBatterMove("POWER");
     }
 }
 
-function checkPromotionCallUp() {
-    const currentTier = TIERS[player.tier];
-    if (player.xp >= currentTier.reqXp && player.tier < TIERS.length - 1) {
-        player.tier++;
-        player.energy = 100;
-        triggerDialogue({
-            name: "Front Office GM",
-            lines: [
-                "🚨 PACK YOUR BAGS, KID!",
-                `You have proved everything at this level. You are being called up to ${TIERS[player.tier].name}!`,
-                "Tougher pitchers await. Keep working your counts!"
-            ]
+function setBattleText(text, cb = null) {
+    battle.phase = "TEXT";
+    battle.logText = text;
+    battle.logCb = cb;
+}
+
+function executeBatterMove(move) {
+    if (move === "CONTACT") {
+        let dmg = Math.max(4, player.contact - 2 + Math.floor(Math.random() * 6));
+        battle.oppHp = Math.max(0, battle.oppHp - dmg);
+        play8BitTone(520, 0.15, "square");
+        setBattleText(`${player.name} poked a sharp single! Took ${dmg} pitcher stamina!`, () => {
+            checkBattleWinOrCounter();
+        });
+    } else if (move === "POWER") {
+        if (Math.random() < 0.65) {
+            let dmg = Math.max(8, player.power * 2 + Math.floor(Math.random() * 8));
+            battle.oppHp = Math.max(0, battle.oppHp - dmg);
+            play8BitTone(220, 0.3, "sawtooth");
+            setBattleText(`BOOM! Deep drive to the gap! Dealt ${dmg} damage!`, () => {
+                checkBattleWinOrCounter();
+            });
+        } else {
+            battle.strikes++;
+            play8BitTone(150, 0.1, "triangle");
+            setBattleText(`Huge swing and a whiff! Strike ${battle.strikes}!`, () => {
+                checkCountConditions();
+            });
+        }
+    } else if (move === "TAKE") {
+        if (Math.random() < 0.55) {
+            battle.balls++;
+            setBattleText(`Ball outside the zone! Count is ${battle.balls}-${battle.strikes}.`, () => {
+                checkCountConditions();
+            });
+        } else {
+            battle.strikes++;
+            setBattleText(`Called strike on the corner! Count is ${battle.balls}-${battle.strikes}.`, () => {
+                checkCountConditions();
+            });
+        }
+    } else if (move === "BUNT") {
+        let dmg = 6;
+        battle.oppHp = Math.max(0, battle.oppHp - dmg);
+        setBattleText(`Laid down a surprise squeeze bunt for ${dmg} damage!`, () => {
+            checkBattleWinOrCounter();
         });
     }
 }
 
-/* --- MAIN GAME LOOP --- */
-function loop() {
-    updateOverworld();
-    drawOverworld();
-    requestAnimationFrame(loop);
+function checkCountConditions() {
+    if (battle.strikes >= 3) {
+        player.hp = Math.max(0, player.hp - 8);
+        setBattleText("STRIKE THREE! Down on strikes! Lost 8 HP.", () => {
+            if (player.hp <= 0) {
+                setBattleText(`${player.name} blacked out back to the Clubhouse...`, () => {
+                    player.hp = player.maxHp;
+                    player.tileX = 4;
+                    player.tileY = 4;
+                    player.pixelX = 4 * 16;
+                    player.pixelY = 4 * 16;
+                    gameState = "OVERWORLD";
+                });
+            } else {
+                battle.strikes = 0;
+                battle.balls = 0;
+                pitcherCounterAttack();
+            }
+        });
+    } else if (battle.balls >= 4) {
+        battle.oppHp = Math.max(0, battle.oppHp - 15);
+        setBattleText("BALL FOUR! Drew the walk! Pitcher loses composure!", () => {
+            battle.balls = 0;
+            battle.strikes = 0;
+            checkBattleWinOrCounter();
+        });
+    } else {
+        pitcherCounterAttack();
+    }
 }
 
-loop();
+function pitcherCounterAttack() {
+    let dmg = Math.max(2, Math.floor(battle.oppLv * 1.2) + Math.floor(Math.random() * 3));
+    player.hp = Math.max(0, player.hp - dmg);
+    play8BitTone(180, 0.2, "noise");
+    setBattleText(`Ace hurled a 98mph heater inside! Red took ${dmg} damage!`, () => {
+        if (player.hp <= 0) {
+            setBattleText(`${player.name} struck out and passed out...`, () => {
+                player.hp = player.maxHp;
+                player.tileX = 4;
+                player.tileY = 4;
+                player.pixelX = 4 * 16;
+                player.pixelY = 4 * 16;
+                gameState = "OVERWORLD";
+            });
+        } else {
+            battle.phase = "MENU";
+        }
+    });
+}
+
+function checkBattleWinOrCounter() {
+    if (battle.oppHp <= 0) {
+        play8BitTone(800, 0.3, "square");
+        setBattleText(`The rival pitcher exhausted their stamina! Victory!`, () => {
+            player.exp += 35;
+            if (player.exp >= 50) {
+                player.level++;
+                player.contact += 3;
+                player.power += 3;
+                player.maxHp += 5;
+                player.hp = player.maxHp;
+                player.exp = 0;
+                setBattleText(`LEVEL UP! ${player.name} grew to Lv. ${player.level}! Stats increased!`, () => {
+                    resolvePostBattle();
+                });
+            } else {
+                resolvePostBattle();
+            }
+        });
+    } else {
+        pitcherCounterAttack();
+    }
+}
+
+function resolvePostBattle() {
+    if (battle.isGymLeader) {
+        const badge = LEAGUE_BADGES[player.badgeTier];
+        player.badgeTier++;
+        setBattleText(`Received the ${badge.badge} from ${badge.leader}! Promoted to next division!`, () => {
+            if (player.badgeTier >= LEAGUE_BADGES.length) {
+                setBattleText("CONGRATULATIONS! You reached THE MAJORS and entered the Hall of Fame!", () => {
+                    gameState = "OVERWORLD";
+                });
+            } else {
+                gameState = "OVERWORLD";
+            }
+        });
+    } else {
+        gameState = "OVERWORLD";
+    }
+}
+
+// Battle Menu navigation
+window.addEventListener("keydown", e => {
+    if (gameState !== "BATTLE") return;
+    if (battle.phase === "MENU") {
+        if (e.key === "ArrowLeft" || e.key === "a") battle.cursor = 0;
+        if (e.key === "ArrowRight" || e.key === "d") battle.cursor = 1;
+        if (e.key === "ArrowUp" || e.key === "w") battle.cursor = 2;
+        if (e.key === "ArrowDown" || e.key === "s") battle.cursor = 3;
+    } else if (battle.phase === "SUB_FIGHT") {
+        if (e.key === "ArrowUp" || e.key === "w") battle.subCursor = 0;
+        if (e.key === "ArrowDown" || e.key === "s") battle.subCursor = 1;
+    }
+});
+
+/* ==========================================================================
+   GRAPHICS RENDERING ENGINE (160x144 Native GB Canvas)
+   ========================================================================== */
+function drawText(txt, x, y, color = C_DARKEST) {
+    ctx.fillStyle = color;
+    ctx.font = "bold 9px monospace";
+    ctx.fillText(txt, x, y);
+}
+
+function drawWindow(x, y, w, h) {
+    ctx.fillStyle = C_LIGHTEST;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = C_DARKEST;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+}
+
+function render() {
+    ctx.fillStyle = C_LIGHTEST;
+    ctx.fillRect(0, 0, 160, 144);
+
+    if (gameState === "OVERWORLD" || gameState === "DIALOGUE") {
+        // Camera centers on player
+        const camX = Math.floor(player.pixelX - 80 + 8);
+        const camY = Math.floor(player.pixelY - 72 + 8);
+
+        // Draw Tiles
+        for (let r = 0; r < MAP_H; r++) {
+            for (let c = 0; c < MAP_W; c++) {
+                let px = c * 16 - camX;
+                let py = r * 16 - camY;
+                if (px < -16 || px > 160 || py < -16 || py > 144) continue;
+
+                let t = OVERWORLD_MAP[r][c];
+                if (t === 0) { // Grass
+                    ctx.fillStyle = C_LIGHT;
+                    ctx.fillRect(px, py, 16, 16);
+                } else if (t === 1) { // Dirt Path
+                    ctx.fillStyle = C_LIGHTEST;
+                    ctx.fillRect(px, py, 16, 16);
+                    ctx.fillStyle = C_LIGHT;
+                    ctx.fillRect(px + 4, py + 4, 2, 2);
+                } else if (t === 2) { // Wall
+                    ctx.fillStyle = C_DARKEST;
+                    ctx.fillRect(px, py, 16, 16);
+                    ctx.fillStyle = C_DARK;
+                    ctx.fillRect(px + 2, py + 2, 12, 12);
+                } else if (t === 3) { // Wild Tall Grass
+                    ctx.fillStyle = C_DARK;
+                    ctx.fillRect(px, py, 16, 16);
+                    ctx.fillStyle = C_LIGHTEST;
+                    ctx.fillRect(px + 3, py + 2, 2, 6);
+                    ctx.fillRect(px + 9, py + 2, 2, 6);
+                } else if (t === 4) { // Mound / Gym Pad
+                    ctx.fillStyle = C_DARK;
+                    ctx.fillRect(px, py, 16, 16);
+                    ctx.fillStyle = C_LIGHTEST;
+                    ctx.fillRect(px + 4, py + 6, 8, 4);
+                } else if (t === 5) { // Roof
+                    ctx.fillStyle = C_DARK;
+                    ctx.fillRect(px, py, 16, 16);
+                }
+            }
+        }
+
+        // Draw Player Sprite (8-bit Trainer)
+        let plPx = player.pixelX - camX;
+        let plPy = player.pixelY - camY;
+
+        ctx.fillStyle = C_DARKEST;
+        ctx.fillRect(plPx + 4, plPy + 1, 8, 5); // Cap
+        ctx.fillStyle = C_LIGHT;
+        ctx.fillRect(plPx + 5, plPy + 6, 6, 4); // Face
+        ctx.fillStyle = C_DARK;
+        ctx.fillRect(plPx + 3, plPy + 10, 10, 5); // Shirt
+
+        // Dialogue Box
+        if (gameState === "DIALOGUE") {
+            drawWindow(4, 96, 152, 44);
+            let display = dialogueText.substring(0, dialogueIdx);
+            if (dialogueIdx < dialogueText.length) dialogueIdx++;
+            drawText(display.substring(0, 24), 10, 110);
+            drawText(display.substring(24, 48), 10, 122);
+            drawText(display.substring(48, 72), 10, 134);
+        }
+    } else if (gameState === "BATTLE_TRANSITION") {
+        transitionTimer++;
+        ctx.fillStyle = C_DARKEST;
+        let barH = (transitionTimer * 6);
+        ctx.fillRect(0, 0, 160, barH);
+        ctx.fillRect(0, 144 - barH, 160, barH);
+        if (transitionTimer > 24) gameState = "BATTLE";
+    } else if (gameState === "BATTLE") {
+        // --- Opponent HUD (Top Left) ---
+        drawWindow(6, 6, 88, 28);
+        drawText(`${battle.oppName}`, 10, 16);
+        drawText(`:L${battle.oppLv}`, 70, 16);
+        // HP Bar
+        ctx.fillStyle = C_DARK;
+        ctx.fillRect(10, 22, 60, 5);
+        let oppPct = Math.max(0, battle.oppHp / battle.oppMaxHp);
+        ctx.fillStyle = C_DARKEST;
+        ctx.fillRect(10, 22, Math.floor(60 * oppPct), 5);
+
+        // Opponent Sprite (Pitcher on rubber)
+        ctx.fillStyle = C_DARKEST;
+        ctx.fillRect(110, 18, 22, 14); // Cap & Head
+        ctx.fillStyle = C_DARK;
+        ctx.fillRect(104, 32, 34, 28); // Uniform
+        ctx.fillStyle = C_LIGHT;
+        ctx.fillRect(98, 38, 8, 8);   // Glove
+
+        // --- Player HUD (Bottom Right) ---
+        drawWindow(66, 64, 88, 32);
+        drawText(`${player.name}`, 72, 74);
+        drawText(`:L${player.level}`, 130, 74);
+        // Player HP
+        ctx.fillStyle = C_DARK;
+        ctx.fillRect(72, 80, 60, 5);
+        let plPct = Math.max(0, player.hp / player.maxHp);
+        ctx.fillStyle = C_DARKEST;
+        ctx.fillRect(72, 80, Math.floor(60 * plPct), 5);
+        drawText(`HP:${player.hp}/${player.maxHp}`, 72, 92);
+
+        // Player Sprite (Back facing batter)
+        ctx.fillStyle = C_DARKEST;
+        ctx.fillRect(18, 64, 28, 34); // Back jersey
+        ctx.fillStyle = C_LIGHT;
+        ctx.fillRect(38, 48, 6, 32);  // Bat cocked up
+
+        // --- Bottom Command Box ---
+        drawWindow(4, 98, 152, 42);
+
+        if (battle.phase === "TEXT") {
+            drawText(battle.logText.substring(0, 24), 10, 112);
+            drawText(battle.logText.substring(24, 50), 10, 124);
+            drawText(battle.logText.substring(50, 76), 10, 134);
+        } else if (battle.phase === "MENU") {
+            drawText("What will RED do?", 10, 114);
+            drawText((battle.cursor === 0 ? "▶" : " ") + "FIGHT", 10, 126);
+            drawText((battle.cursor === 1 ? "▶" : " ") + "TAKE", 60, 126);
+            drawText((battle.cursor === 2 ? "▶" : " ") + "BUNT", 10, 136);
+            drawText((battle.cursor === 3 ? "▶" : " ") + "RUN",  60, 136);
+            drawText(`B:${battle.balls} S:${battle.strikes}`, 110, 126);
+        } else if (battle.phase === "SUB_FIGHT") {
+            drawText((battle.subCursor === 0 ? "▶" : " ") + "CONTACT SWING", 12, 114);
+            drawText((battle.subCursor === 1 ? "▶" : " ") + "POWER BLAST", 12, 128);
+            drawText("[B] BACK", 100, 136);
+        }
+    }
+}
+
+/* ==========================================================================
+   GAME LOOP
+   ========================================================================== */
+function gameLoop() {
+    updateOverworld();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
 </script>
 </body>
 </html>
