@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB: Road to the Show RPG</title>
+    <title>MLB Road to the Show: Pro Hitting Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,130 +12,141 @@
             padding: 0;
         }
         body {
-            background: #070a0e;
+            background: #06090e;
             color: #f0f6fc;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 10px;
+            padding: 14px;
         }
-        .stadium-bezel {
-            background: #161b22;
-            border: 2px solid #30363d;
+        .cabinet {
+            background: #0f141c;
+            border: 2px solid #21262d;
             border-radius: 12px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.9), 0 0 20px rgba(0, 206, 203, 0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(0, 206, 203, 0.25);
             overflow: hidden;
-            width: 800px;
+            width: 860px;
         }
-        .broadcast-bar {
-            background: #0d1117;
-            padding: 8px 16px;
+        .header-bar {
+            background: #0a0d14;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #00cecb;
-            font-weight: 800;
             font-size: 13px;
+            font-weight: 800;
             letter-spacing: 0.8px;
-            color: #00cecb;
             text-transform: uppercase;
         }
-        .broadcast-bar .live-badge {
+        .pill {
             background: #e3b341;
             color: #000;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 11px;
-            margin-right: 6px;
+            margin-right: 8px;
         }
         canvas {
             display: block;
-            background: #000;
-            width: 800px;
+            width: 860px;
             height: 520px;
+            background: #000;
+            cursor: pointer;
         }
-        .hud-footer {
-            background: #0d1117;
-            padding: 12px 18px;
+        .footer-bar {
+            background: #0a0d14;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid #21262d;
+            border-top: 1px solid #1f2937;
             font-size: 13px;
         }
-        .control-pill {
-            background: #21262d;
-            border: 1px solid #30363d;
+        .key-badge {
+            background: #1f2937;
+            border: 1px solid #374151;
+            color: #e3b341;
             padding: 4px 10px;
             border-radius: 6px;
-            font-weight: 700;
-            color: #e3b341;
+            font-weight: bold;
+        }
+        .btn-action {
+            background: #00cecb;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-action:hover {
+            background: #38efec;
+            transform: scale(1.03);
         }
     </style>
 </head>
 <body>
 
-<div class="stadium-bezel">
-    <div class="broadcast-bar">
-        <div><span class="live-badge">RTTS</span> <span id="hdr-tier">SINGLE-A AFFILIATE</span></div>
-        <div id="hdr-stats">AVG: .000 | HR: 0 | OVR: 62</div>
+<div class="cabinet">
+    <div class="header-bar">
+        <div><span class="pill">RTTS</span> <span id="tier-name">SINGLE-A AFFILIATE</span></div>
+        <div id="career-statline" style="color: #00cecb;">AVG: .000 | HR: 0 | OVR: 65</div>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="520"></canvas>
+    <canvas id="gameCanvas" width="860" height="520"></canvas>
 
-    <div class="hud-footer">
+    <div class="footer-bar">
         <div>
-            <span class="control-pill">WASD / ARROWS</span> Walk in Clubhouse | 
-            <span class="control-pill">SPACE / ENTER</span> Swing Bat / Interact | 
-            <span class="control-pill">T</span> Take Pitch
+            <span class="key-badge">SPACE / LEFT CLICK</span> Swing Bat &nbsp;|&nbsp; 
+            <span class="key-badge">P</span> Toggle Pitcher Delivery
         </div>
-        <div id="sub-hint" style="color:#8b949e; font-weight:600;">Walk up to the Dugout Tunnel to Take the Field</div>
+        <button class="btn-action" onclick="forceNextPitch()">Next Pitch ➔</button>
     </div>
 </div>
 
 <script>
 /* ==========================================================================
-   AUDIO SYNTHESIZER (REAL CRACK OF THE BAT, UMPIRE CALLS)
+   AUDIO SYNTHESIZER (CRACKS, CROWDS, MITT POPS)
    ========================================================================== */
 let audioCtx = null;
-function playFx(type) {
+function playSound(type) {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
         const t = audioCtx.currentTime;
 
-        if (type === "bat_crack") {
-            // Realistic resonant wooden bat crack
+        if (type === "crack") {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = "triangle";
-            osc.frequency.setValueAtTime(420, t);
-            osc.frequency.exponentialRampToValueAtTime(80, t + 0.16);
-            gain.gain.setValueAtTime(0.7, t);
+            osc.frequency.setValueAtTime(460, t);
+            osc.frequency.exponentialRampToValueAtTime(90, t + 0.16);
+            gain.gain.setValueAtTime(0.8, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.16);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(t);
             osc.stop(t + 0.16);
-        } else if (type === "mitt_pop") {
-            // Catcher's leather mitt snap
+        } else if (type === "pop") {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = "sine";
-            osc.frequency.setValueAtTime(120, t);
-            osc.frequency.linearRampToValueAtTime(40, t + 0.08);
-            gain.gain.setValueAtTime(0.5, t);
+            osc.frequency.setValueAtTime(140, t);
+            osc.frequency.linearRampToValueAtTime(50, t + 0.08);
+            gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.08);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(t);
             osc.stop(t + 0.08);
         } else if (type === "cheer") {
-            // Crowd roar noise burst
-            const bufferSize = audioCtx.sampleRate * 0.4;
+            const bufferSize = audioCtx.sampleRate * 0.45;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -143,668 +154,561 @@ function playFx(type) {
             noise.buffer = buffer;
             const filter = audioCtx.createBiquadFilter();
             filter.type = "bandpass";
-            filter.frequency.setValueAtTime(800, t);
+            filter.frequency.setValueAtTime(850, t);
             const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.15, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.45);
             noise.connect(filter);
             filter.connect(gain);
             gain.connect(audioCtx.destination);
             noise.start(t);
-            noise.stop(t + 0.4);
+            noise.stop(t + 0.45);
         }
     } catch(e) {}
 }
 
 /* ==========================================================================
-   GAME ENGINE & CAREER SYSTEM
+   GAME STATE & ROAD TO THE SHOW CAREER
    ========================================================================== */
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TIERS = [
-    { name: "Single-A: Modesto Nuts", pitcher: "C. Hammer", velo: 92, targetXP: 100 },
-    { name: "Double-A: Arkansas Travelers", pitcher: "J. Santos", velo: 96, targetXP: 240 },
-    { name: "Triple-A: Tacoma Rainiers", pitcher: "T. Vance", velo: 99, targetXP: 450 },
-    { name: "MLB: The Show", pitcher: "G. Cole", velo: 102, targetXP: 9999 }
+    { name: "Single-A: Modesto Nuts", pitcher: "C. Hammer", velo: 91, pitchDelay: 1100, targetXP: 100 },
+    { name: "Double-A: Travelers", pitcher: "J. Santos", velo: 95, pitchDelay: 980, targetXP: 240 },
+    { name: "Triple-A: Rainiers", pitcher: "T. Vance", velo: 98, pitchDelay: 880, targetXP: 450 },
+    { name: "MLB: The Show", pitcher: "G. Cole", velo: 101, pitchDelay: 800, targetXP: 9999 }
 ];
 
 const player = {
     name: "Brennan",
-    position: "SS",
     tierIdx: 0,
-    contact: 60,
-    power: 58,
-    vision: 55,
-    speed: 62,
+    contact: 65,
+    power: 62,
     xp: 0,
-    atBats: 0,
+    ab: 0,
     hits: 0,
-    hrs: 0,
-    // Clubhouse coordinates
-    x: 400,
-    y: 340,
-    dir: "up"
+    hrs: 0
 };
 
-let scene = "CLUBHOUSE"; // CLUBHOUSE, AT_BAT, DIALOGUE
-
-// Live Pitching Physics & At-Bat System
+// Hitting & Ball Flight Mechanics
 const atBat = {
     balls: 0,
     strikes: 0,
-    pitchState: "IDLE", // IDLE, WINDUP, IN_FLIGHT, CONTACT, RESULT
-    ballX: 400,
-    ballY: 180,
-    ballZ: 1, // scale
-    targetX: 400,
-    targetY: 415,
-    pitchProgress: 0,
-    swingFrame: 0,
-    isSwinging: false,
-    bannerText: "Step In. Pitcher is looking in for the sign.",
-    bannerSub: "Press [SPACE] or Click to Time Your Swing | [T] to Take",
-    bannerTimer: 0
+    phase: "WAITING", // WAITING, WINDUP, THROWN, CONTACT, RESOLVED
+    pitchProgress: 0, // 0.0 to 1.0
+    pitchStartX: 430,
+    pitchStartY: 175,
+    pitchTargetX: 430,
+    pitchTargetY: 420,
+    ballX: 430,
+    ballY: 175,
+    ballScale: 0.3,
+    
+    // Timing Meter: 0.0 (Early) to 1.0 (Late), 0.85 = Sweet Spot
+    swingActive: false,
+    swingTimer: 0,
+    hitFeed: "WAITING FOR PITCH...",
+    feedbackColor: "#9ca3af",
+    hitDistance: 0,
+    exitVelo: 0,
+    
+    // Hit Ball Animation
+    hitBallActive: false,
+    hitBallX: 430,
+    hitBallY: 420,
+    hitBallVX: 0,
+    hitBallVY: 0,
+    hitBallScale: 1.0
 };
 
 /* ==========================================================================
-   INPUTS
+   INPUTS (MOUSE CLICK & SPACEBAR)
    ========================================================================== */
-const keys = {};
 window.addEventListener("keydown", e => {
-    keys[e.key.toLowerCase()] = true;
-    if (scene === "CLUBHOUSE") {
-        if (e.key === " " || e.key === "Enter") interactClubhouse();
-    } else if (scene === "AT_BAT") {
-        if (e.key === " " || e.key === "Enter") triggerSwing();
-        if (e.key.toLowerCase() === "t") triggerTake();
-    }
+    if (e.code === "Space") handleSwingAttempt();
+    if (e.key.toLowerCase() === "p") forceNextPitch();
 });
-window.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
-});
-canvas.addEventListener("mousedown", () => {
-    if (scene === "AT_BAT") triggerSwing();
-});
+canvas.addEventListener("mousedown", handleSwingAttempt);
 
-/* ==========================================================================
-   CLUBHOUSE OVERWORLD ENGINE
-   ========================================================================== */
-function updateClubhouse() {
-    let speed = 3.5;
-    if (keys["w"] || keys["arrowup"]) { player.y -= speed; player.dir = "up"; }
-    if (keys["s"] || keys["arrowdown"]) { player.y += speed; player.dir = "down"; }
-    if (keys["a"] || keys["arrowleft"]) { player.x -= speed; player.dir = "left"; }
-    if (keys["d"] || keys["arrowright"]) { player.x += speed; player.dir = "right"; }
-
-    player.x = Math.max(80, Math.min(720, player.x));
-    player.y = Math.max(140, Math.min(460, player.y));
-
-    // Tunnel Trigger to Stadium Diamond (X: 340 - 460, Y < 160)
-    if (player.x > 340 && player.x < 460 && player.y <= 150) {
-        startLiveAtBat();
+function forceNextPitch() {
+    if (atBat.phase === "WAITING" || atBat.phase === "RESOLVED") {
+        queuePitch();
     }
 }
 
-function interactClubhouse() {
-    // Batting cage station on left
-    if (player.x < 240 && player.y > 220 && player.y < 340) {
-        player.contact += 1;
-        player.xp += 10;
-        showBannerNotification("Hitting Coach: Clean swing mechanics! Contact +1");
-    }
-    // Weight Rack on right
-    if (player.x > 560 && player.y > 220 && player.y < 340) {
-        player.power += 1;
-        player.xp += 10;
-        showBannerNotification("Strength Coach: Crushing reps! Power +1");
-    }
-}
-
-function showBannerNotification(text) {
-    const el = document.getElementById("sub-hint");
-    el.innerText = text;
-    el.style.color = "#e3b341";
+function queuePitch() {
+    atBat.phase = "WINDUP";
+    atBat.hitFeed = "PITCHER DELIVERING...";
+    atBat.feedbackColor = "#e3b341";
+    
     setTimeout(() => {
-        el.innerText = "Walk up to the Dugout Tunnel to Take the Field";
-        el.style.color = "#8b949e";
-    }, 2800);
-}
-
-function renderClubhouse() {
-    // Wood locker room floor
-    ctx.fillStyle = "#8a5832";
-    ctx.fillRect(0, 0, 800, 520);
-
-    // Carpet runner with organization logo in center
-    ctx.fillStyle = "#0c2340";
-    ctx.fillRect(260, 140, 280, 340);
-    ctx.strokeStyle = "#e3b341";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(260, 140, 280, 340);
-
-    ctx.fillStyle = "#e3b341";
-    ctx.font = "900 24px -apple-system, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("CLUBHOUSE", 400, 310);
-    ctx.font = "700 12px -apple-system, sans-serif";
-    ctx.fillText(TIERS[player.tierIdx].name.toUpperCase(), 400, 330);
-
-    // North Tunnel leading out to the Stadium Field
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(340, 60, 120, 80);
-    ctx.fillStyle = "#22c55e"; // bright daylight spill
-    ctx.fillRect(360, 60, 80, 20);
-    ctx.fillStyle = "#fff";
-    ctx.font = "800 12px sans-serif";
-    ctx.fillText("DUGOUT TUNNEL", 400, 110);
-    ctx.fillText("▲ FIELD ▲", 400, 130);
-
-    // Left Side: Batting Cage Area
-    ctx.fillStyle = "#16202c";
-    ctx.fillRect(40, 180, 180, 180);
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 180, 180, 180);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillText("BATTING CAGE", 130, 260);
-    ctx.font = "11px sans-serif";
-    ctx.fillStyle = "#cbd5e1";
-    ctx.fillText("[SPACE] Drill Reps (+CON)", 130, 285);
-
-    // Right Side: Weight & Fitness Center
-    ctx.fillStyle = "#16202c";
-    ctx.fillRect(580, 180, 180, 180);
-    ctx.strokeStyle = "#f87171";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(580, 180, 180, 180);
-    ctx.fillStyle = "#f87171";
-    ctx.font = "800 12px sans-serif";
-    ctx.fillText("WEIGHT ROOM", 670, 260);
-    ctx.font = "11px sans-serif";
-    ctx.fillStyle = "#cbd5e1";
-    ctx.fillText("[SPACE] Heavy Squats (+PWR)", 670, 285);
-
-    // Draw Player in Clubhouse
-    drawClubhousePlayer(player.x, player.y);
-}
-
-function drawClubhousePlayer(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-
-    // Drop shadow
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.beginPath();
-    ctx.ellipse(0, 18, 14, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Cleats
-    ctx.fillStyle = "#111";
-    ctx.fillRect(-10, 14, 8, 6);
-    ctx.fillRect(2, 14, 8, 6);
-
-    // Baseball Pants (Grey/White with piping)
-    ctx.fillStyle = "#e2e8f0";
-    ctx.fillRect(-10, -2, 20, 16);
-    ctx.fillStyle = "#00cecb";
-    ctx.fillRect(-1, -2, 2, 16); // Piping
-
-    // Jersey & Belt
-    ctx.fillStyle = "#0c2340";
-    ctx.fillRect(-11, -16, 22, 14);
-    ctx.fillStyle = "#e3b341"; // Number / Trim
-    ctx.font = "bold 9px sans-serif";
-    ctx.fillText("24", 0, -6);
-
-    // Head & Cap
-    ctx.fillStyle = "#dfa070";
-    ctx.beginPath();
-    ctx.arc(0, -22, 7, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Cap with visor
-    ctx.fillStyle = "#0c2340";
-    ctx.beginPath();
-    ctx.arc(0, -25, 7, Math.PI, 0);
-    ctx.fill();
-    ctx.fillRect(-2, -26, 12, 3); // Visor
-
-    ctx.restore();
+        atBat.phase = "THROWN";
+        atBat.pitchProgress = 0;
+        atBat.pitchStartX = 430;
+        atBat.pitchStartY = 175;
+        // Pitch location within strike zone: X 405-455, Y 395-440
+        atBat.pitchTargetX = 410 + Math.random() * 40;
+        atBat.pitchTargetY = 400 + Math.random() * 35;
+    }, 600);
 }
 
 /* ==========================================================================
-   AUTHENTIC 3D-PERSPECTIVE BROADCAST BALLPARK & AT-BAT SCENE
+   EASY, ACCESSIBLE, AND SATISFYING HITTING LOGIC
    ========================================================================== */
-function startLiveAtBat() {
-    scene = "AT_BAT";
-    atBat.balls = 0;
-    atBat.strikes = 0;
-    atBat.pitchState = "IDLE";
-    atBat.bannerText = `Batting: ${player.name} vs. ${TIERS[player.tierIdx].pitcher}`;
-    atBat.bannerSub = `Fastball Velo: ${TIERS[player.tierIdx].velo} MPH | Time the ball crossing the plate!`;
+function handleSwingAttempt() {
+    if (atBat.swingActive) return;
+    atBat.swingActive = true;
+    atBat.swingTimer = 0;
 
-    // Queue pitcher delivery
-    setTimeout(startPitchDelivery, 1200);
-}
+    if (atBat.phase === "THROWN") {
+        // Ideal window is between 0.78 and 0.94 progress
+        let timing = atBat.pitchProgress;
+        let delta = timing - 0.86;
 
-function startPitchDelivery() {
-    if (scene !== "AT_BAT") return;
-    atBat.pitchState = "IN_FLIGHT";
-    atBat.ballX = 400;
-    atBat.ballY = 195;
-    atBat.ballZ = 0.35;
-    atBat.pitchProgress = 0;
-    atBat.isSwinging = false;
-    atBat.swingFrame = 0;
+        if (Math.abs(delta) <= 0.12) {
+            // SUCCESSFUL HIT
+            atBat.phase = "CONTACT";
+            playSound("crack");
+            playSound("cheer");
 
-    // Pitch target around the strike zone (370 - 430 X, 395 - 435 Y)
-    let inZone = Math.random() < 0.65;
-    atBat.targetX = inZone ? 385 + Math.random() * 30 : 355 + Math.random() * 90;
-    atBat.targetY = inZone ? 405 + Math.random() * 25 : 380 + Math.random() * 65;
-}
-
-function updateAtBatPhysics() {
-    if (atBat.pitchState === "IN_FLIGHT") {
-        // High-velocity flight scaled to tier
-        let speed = 0.038 + (player.tierIdx * 0.005);
-        atBat.pitchProgress += speed;
-
-        atBat.ballX = 400 + (atBat.targetX - 400) * atBat.pitchProgress;
-        atBat.ballY = 195 + (atBat.targetY - 195) * atBat.pitchProgress;
-        atBat.ballZ = 0.35 + (atBat.pitchProgress * 1.4);
-
-        // Reached the plate
-        if (atBat.pitchProgress >= 1.0) {
-            atBat.pitchState = "RESULT";
-            playFx("mitt_pop");
-
-            // Evaluate take
-            let isStrike = (atBat.targetX >= 370 && atBat.targetX <= 430 && atBat.targetY >= 390 && atBat.targetY <= 440);
-            if (isStrike) {
-                atBat.strikes++;
-                atBat.bannerText = "Called Strike on the Corner!";
-            } else {
-                atBat.balls++;
-                atBat.bannerText = "Ball! Missed outside the zone.";
-            }
-
-            checkCountResolution();
-        }
-    }
-
-    if (atBat.isSwinging) {
-        atBat.swingFrame += 0.22;
-        if (atBat.swingFrame > Math.PI) {
-            atBat.isSwinging = false;
-        }
-    }
-}
-
-function triggerTake() {
-    if (atBat.pitchState !== "IN_FLIGHT") return;
-    atBat.bannerSub = "Taking pitch... watching the flight path.";
-}
-
-function triggerSwing() {
-    if (scene !== "AT_BAT") return;
-    atBat.isSwinging = true;
-    atBat.swingFrame = 0;
-
-    if (atBat.pitchState === "IN_FLIGHT") {
-        let timingDiff = Math.abs(atBat.pitchProgress - 0.92);
-
-        if (timingDiff < 0.14) {
-            // Barrel on ball!
-            atBat.pitchState = "CONTACT";
-            playFx("bat_crack");
-            playFx("cheer");
-
-            player.atBats++;
+            player.ab++;
             player.hits++;
 
-            let isPowerHit = timingDiff < 0.06 && player.power >= 58;
-            if (isPowerHit) {
+            // Evaluate Perfect vs Good
+            let isPerfect = Math.abs(delta) <= 0.05;
+            atBat.exitVelo = Math.round(98 + (player.power * 0.2) + (isPerfect ? 8 : (Math.random() * 4)));
+            
+            if (isPerfect && atBat.exitVelo >= 104) {
+                // HOME RUN!
                 player.hrs++;
-                player.xp += 50;
-                atBat.bannerText = "🔥 HOME RUN!! CRUSHED 440 FEET OVER THE CENTERFIELD WALL!";
+                player.xp += 40;
+                atBat.hitDistance = Math.round(390 + (atBat.exitVelo - 100) * 5 + Math.random() * 20);
+                atBat.hitFeed = `🔥 PERFECT TIMING! HOME RUN! (${atBat.hitDistance} FT, ${atBat.exitVelo} MPH)`;
+                atBat.feedbackColor = "#22c55e";
+                launchHitBall(true);
             } else {
-                player.xp += 25;
-                atBat.bannerText = "⚾ SHOT INTO THE GAP! Clean Line-Drive Base Hit!";
+                // CLEAN BASE HIT / DOUBLE
+                player.xp += 20;
+                atBat.hitDistance = Math.round(260 + Math.random() * 70);
+                atBat.hitFeed = `⚾ SOLID CONTACT! BASE HIT! (${atBat.exitVelo} MPH)`;
+                atBat.feedbackColor = "#38bdf8";
+                launchHitBall(false);
             }
-            updateDOMStats();
 
-            setTimeout(() => {
-                checkPromotion();
-                scene = "CLUBHOUSE";
-            }, 2400);
-        } else {
-            // Whiffed
-            playFx("mitt_pop");
+            updateUI();
+            checkCallUpPromotion();
+            setTimeout(resetAtBat, 2200);
+
+        } else if (delta < -0.12) {
+            // SWUNG TOO EARLY
+            playSound("pop");
             atBat.strikes++;
-            atBat.bannerText = "Swing and a Miss! Fooled on timing.";
-            atBat.pitchState = "RESULT";
-            checkCountResolution();
+            atBat.hitFeed = "EARLY SWING! Whiffed in front of the plate.";
+            atBat.feedbackColor = "#f87171";
+            atBat.phase = "RESOLVED";
+            checkStrikes();
+        } else {
+            // SWUNG TOO LATE
+            playSound("pop");
+            atBat.strikes++;
+            atBat.hitFeed = "LATE SWING! Beaten by the fastball.";
+            atBat.feedbackColor = "#f87171";
+            atBat.phase = "RESOLVED";
+            checkStrikes();
         }
     }
 }
 
-function checkCountResolution() {
-    updateDOMStats();
+function launchHitBall(isHR) {
+    atBat.hitBallActive = true;
+    atBat.hitBallX = atBat.ballX;
+    atBat.hitBallY = atBat.ballY;
+    atBat.hitBallVX = (Math.random() - 0.5) * 4;
+    atBat.hitBallVY = isHR ? -12 : -7;
+    atBat.hitBallScale = 1.0;
+}
+
+function checkStrikes() {
+    updateUI();
     if (atBat.strikes >= 3) {
-        player.atBats++;
-        atBat.bannerText = "STRIKE THREE! Down on strikes. Walk back to the dugout.";
-        setTimeout(() => { scene = "CLUBHOUSE"; }, 2000);
-    } else if (atBat.balls >= 4) {
-        player.atBats++;
-        player.xp += 20;
-        atBat.bannerText = "BALL FOUR! Drew the walk! Outstanding plate discipline.";
-        setTimeout(() => {
-            checkPromotion();
-            scene = "CLUBHOUSE";
-        }, 2000);
+        player.ab++;
+        atBat.hitFeed = "STRIKE THREE! Down on strikes.";
+        atBat.feedbackColor = "#ef4444";
+        updateUI();
+        setTimeout(resetAtBat, 2000);
     } else {
-        setTimeout(startPitchDelivery, 1600);
+        setTimeout(queuePitch, 1500);
     }
 }
 
-function checkPromotion() {
-    let curTier = TIERS[player.tierIdx];
-    if (player.xp >= curTier.targetXP && player.tierIdx < TIERS.length - 1) {
+function resetAtBat() {
+    atBat.strikes = 0;
+    atBat.balls = 0;
+    atBat.phase = "WAITING";
+    atBat.hitBallActive = false;
+    atBat.hitFeed = "READY. PRESS [SPACE] OR CLICK NEXT PITCH.";
+    atBat.feedbackColor = "#9ca3af";
+}
+
+function checkCallUpPromotion() {
+    let cur = TIERS[player.tierIdx];
+    if (player.xp >= cur.targetXP && player.tierIdx < TIERS.length - 1) {
         player.tierIdx++;
-        showBannerNotification(`🚨 PROMOTION CALL-UP! You made it to ${TIERS[player.tierIdx].name}!`);
-        document.getElementById("hdr-tier").innerText = TIERS[player.tierIdx].name.toUpperCase();
+        atBat.hitFeed = `🚨 CONGRATULATIONS! CALL-UP PROMOTION TO ${TIERS[player.tierIdx].name.toUpperCase()}!`;
+        atBat.feedbackColor = "#e3b341";
+        document.getElementById("tier-name").innerText = TIERS[player.tierIdx].name.toUpperCase();
     }
 }
 
-function updateDOMStats() {
-    let avg = player.atBats > 0 ? (player.hits / player.atBats).toFixed(3).replace(/^0/, "") : ".000";
-    document.getElementById("hdr-stats").innerText = `AVG: ${avg} | HR: ${player.hrs} | OVR: ${Math.floor((player.contact + player.power + player.vision) / 3)}`;
+function updateUI() {
+    let avg = player.ab > 0 ? (player.hits / player.ab).toFixed(3).replace(/^0/, "") : ".000";
+    let ovr = Math.floor((player.contact + player.power) / 2);
+    document.getElementById("career-statline").innerText = `AVG: ${avg} | HR: ${player.hrs} | OVR: ${ovr}`;
 }
 
 /* ==========================================================================
-   RENDER THE 3D BALLPARK ENVIRONMENT
+   PHYSICS & ANIMATION LOOP
    ========================================================================== */
-function renderBallpark() {
-    // 1. Summer Sky & Outfield Skyline
-    let skyGradient = ctx.createLinearGradient(0, 0, 0, 160);
-    skyGradient.addColorStop(0, "#0284c7");
-    skyGradient.addColorStop(1, "#bae6fd");
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, 800, 160);
+function updatePhysics() {
+    if (atBat.phase === "THROWN") {
+        // High-Velo Ball Delivery
+        atBat.pitchProgress += 0.024;
+        atBat.ballX = atBat.pitchStartX + (atBat.pitchTargetX - atBat.pitchStartX) * atBat.pitchProgress;
+        atBat.ballY = atBat.pitchStartY + (atBat.pitchTargetY - atBat.pitchStartY) * atBat.pitchProgress;
+        atBat.ballScale = 0.35 + (atBat.pitchProgress * 1.3);
 
-    // Outfield Stadium Wall & Bleachers
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, 100, 800, 40);
-    ctx.fillStyle = "#047857"; // Green Monster / Outfield Padded Wall
-    ctx.fillRect(0, 130, 800, 30);
-    ctx.fillStyle = "#fbbf24";
-    ctx.font = "800 12px sans-serif";
-    ctx.fillText("330", 40, 150);
-    ctx.fillText("405", 400, 150);
-    ctx.fillText("330", 760, 150);
-
-    // Yellow Foul Poles
-    ctx.fillStyle = "#facc15";
-    ctx.fillRect(36, 40, 4, 110);
-    ctx.fillRect(764, 40, 4, 110);
-
-    // 2. Outfield Warning Track Dirt
-    ctx.fillStyle = "#9a6538";
-    ctx.beginPath();
-    ctx.ellipse(400, 160, 420, 60, 0, 0, Math.PI);
-    ctx.fill();
-
-    // 3. Outfield & Infield Turf (Mower Patterned Stripes)
-    let turfGrad = ctx.createLinearGradient(0, 160, 0, 520);
-    turfGrad.addColorStop(0, "#15803d");
-    turfGrad.addColorStop(1, "#166534");
-    ctx.fillStyle = turfGrad;
-    ctx.fillRect(0, 160, 800, 360);
-
-    // Mower Stripes
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    for (let x = 0; x < 800; x += 40) {
-        ctx.fillRect(x, 160, 20, 360);
+        // Reached plate without swing -> Called Strike / Ball
+        if (atBat.pitchProgress >= 1.0) {
+            atBat.phase = "RESOLVED";
+            playSound("pop");
+            atBat.strikes++;
+            atBat.hitFeed = "CALLED STRIKE! Right down the pipe.";
+            atBat.feedbackColor = "#e3b341";
+            checkStrikes();
+        }
     }
 
-    // 4. Infield Dirt Diamond & Clay Cutouts
-    ctx.fillStyle = "#b07d4b";
+    if (atBat.swingActive) {
+        atBat.swingTimer += 0.16;
+        if (atBat.swingTimer > Math.PI) {
+            atBat.swingActive = false;
+        }
+    }
+
+    if (atBat.hitBallActive) {
+        atBat.hitBallX += atBat.hitBallVX;
+        atBat.hitBallY += atBat.hitBallVY;
+        atBat.hitBallVY += 0.25; // gravity
+        atBat.hitBallScale = Math.max(0.2, atBat.hitBallScale - 0.015);
+    }
+}
+
+/* ==========================================================================
+   HIGH-FIDELITY STADIUM & BROADCAST PRESENTATION
+   ========================================================================== */
+function render() {
+    ctx.clearRect(0, 0, 860, 520);
+
+    // 1. Sunset Sky Gradient with Stadium Floodlights
+    let sky = ctx.createLinearGradient(0, 0, 0, 180);
+    sky.addColorStop(0, "#0f172a");
+    sky.addColorStop(0.6, "#1e3a8a");
+    sky.addColorStop(1, "#f97316");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 860, 180);
+
+    // Stadium Lights & Halos
+    drawStadiumLight(100, 50);
+    drawStadiumLight(760, 50);
+
+    // 2. Multi-Deck Stadium Bleachers & Crowd Silhouettes
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(60, 90, 740, 50);
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(100, 115, 660, 25);
+    // Crowd Speckles
+    for (let i = 80; i < 780; i += 8) {
+        ctx.fillStyle = (i % 16 === 0) ? "#38bdf8" : (i % 24 === 0) ? "#f43f5e" : "#f8fafc";
+        ctx.fillRect(i, 96 + (i % 6), 5, 5);
+    }
+
+    // 3. Outfield Wall & Distance Markers
+    ctx.fillStyle = "#064e3b"; // Forest green padded wall
+    ctx.fillRect(0, 135, 860, 35);
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "800 13px sans-serif";
+    ctx.fillText("330", 50, 158);
+    ctx.fillText("408", 420, 158);
+    ctx.fillText("330", 790, 158);
+
+    // 4. Manicured Outfield Turf with Mower Stripes
+    let grass = ctx.createLinearGradient(0, 170, 0, 520);
+    grass.addColorStop(0, "#15803d");
+    grass.addColorStop(1, "#14532d");
+    ctx.fillStyle = grass;
+    ctx.fillRect(0, 170, 860, 350);
+
+    // Mower Patterns
+    ctx.fillStyle = "rgba(255,255,255,0.035)";
+    for (let c = 0; c < 860; c += 50) {
+        ctx.fillRect(c, 170, 25, 350);
+    }
+
+    // 5. Infield Dirt Diamond & Pitching Mound
+    ctx.fillStyle = "#b4793f";
     ctx.beginPath();
-    ctx.ellipse(400, 380, 260, 130, 0, 0, Math.PI * 2);
+    ctx.ellipse(430, 390, 280, 130, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#8c5628";
+    ctx.strokeStyle = "#854d0e";
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // 5. Pitcher's Mound (Elevated 3D Hill)
-    ctx.fillStyle = "#8c5628";
+    // Pitcher Mound & Rubber
+    ctx.fillStyle = "#92400e";
     ctx.beginPath();
-    ctx.ellipse(400, 210, 42, 16, 0, 0, Math.PI * 2);
+    ctx.ellipse(430, 195, 40, 16, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#ffffff"; // Pitching rubber
-    ctx.fillRect(392, 208, 16, 4);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(422, 193, 16, 4); // rubber
 
-    // 6. Home Plate & White Chalked Batter's Boxes
+    // 6. Home Plate & Chalked Batter's Boxes
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.moveTo(400, 442);
-    ctx.lineTo(410, 432);
-    ctx.lineTo(410, 422);
-    ctx.lineTo(390, 422);
-    ctx.lineTo(390, 432);
+    ctx.moveTo(430, 442);
+    ctx.lineTo(440, 432);
+    ctx.lineTo(440, 422);
+    ctx.lineTo(420, 422);
+    ctx.lineTo(420, 432);
     ctx.closePath();
     ctx.fill();
 
-    // Batter's Box Chalk Outlines
-    ctx.strokeStyle = "rgba(255,255,255,0.85)";
+    // Chalk Lines
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
     ctx.lineWidth = 3;
-    ctx.strokeRect(335, 395, 45, 65); // Righty box
-    ctx.strokeRect(420, 395, 45, 65); // Lefty box
+    ctx.strokeRect(360, 395, 45, 65); // Left box
+    ctx.strokeRect(455, 395, 45, 65); // Right box
 
-    // 7. Pitcher Model on the Mound (Windup & Stance)
-    drawPitcher(400, 185);
+    // 7. Pitcher Model
+    drawPitcher(430, 172);
 
-    // 8. Live Pitch in Flight
-    if (atBat.pitchState === "IN_FLIGHT") {
-        ctx.save();
-        // Baseball shadow
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
+    // 8. Strike Zone Overlay Reticle (Assists Player)
+    ctx.strokeStyle = "rgba(0, 206, 203, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(405, 395, 50, 45);
+
+    // 9. Ball Delivery Animation
+    if (atBat.phase === "THROWN") {
+        // Shadow
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.beginPath();
-        ctx.ellipse(atBat.ballX, atBat.ballY + 14 * atBat.ballZ, 4 * atBat.ballZ, 2 * atBat.ballZ, 0, 0, Math.PI * 2);
+        ctx.ellipse(atBat.ballX, atBat.ballY + 10 * atBat.ballScale, 4 * atBat.ballScale, 2 * atBat.ballScale, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // White Leather Ball with Red Stitches
+        // Leather Baseball
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(atBat.ballX, atBat.ballY, 5 * atBat.ballZ, 0, Math.PI * 2);
+        ctx.arc(atBat.ballX, atBat.ballY, 6 * atBat.ballScale, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = "#dc2626";
         ctx.lineWidth = 1;
         ctx.stroke();
-        ctx.restore();
     }
 
-    // 9. Authentic Batter in Box with Animated Swing
-    drawBatter(352, 425, atBat.isSwinging, atBat.swingFrame);
+    // 10. Hit Ball Rocketing into Air
+    if (atBat.hitBallActive) {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(atBat.hitBallX, atBat.hitBallY, 8 * atBat.hitBallScale, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-    // 10. TV Broadcast Overlay (Balls, Strikes, Pitch Velo)
+    // 11. Upgraded Realistic Batter Sprite (Fluid Recoil)
+    drawBatter(378, 425, atBat.swingActive, atBat.swingTimer);
+
+    // 12. Broadcast Scorebug HUD & Timing Feedback
     renderBroadcastHUD();
+}
+
+function drawStadiumLight(x, y) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.beginPath();
+    ctx.arc(x, y, 40, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x - 15, y - 6, 30, 12);
 }
 
 function drawPitcher(x, y) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Uniform Pants
+    // Pants & Legs
     ctx.fillStyle = "#e2e8f0";
-    ctx.fillRect(-6, 0, 5, 18);
-    ctx.fillRect(1, 0, 5, 18);
-
-    // Pinstripes
+    ctx.fillRect(-6, 2, 5, 18);
+    ctx.fillRect(1, 2, 5, 18);
+    // Jersey
     ctx.fillStyle = "#0c2340";
-    ctx.fillRect(-4, 0, 1, 18);
-    ctx.fillRect(3, 0, 1, 18);
-
-    // Jersey & Glove
-    ctx.fillStyle = "#0c2340";
-    ctx.fillRect(-8, -14, 16, 15);
-    ctx.fillStyle = "#9a6538"; // Tan leather glove
-    ctx.fillRect(-12, -10, 6, 6);
-
+    ctx.fillRect(-8, -12, 16, 16);
+    // Glove & Ball Hand
+    ctx.fillStyle = "#854d0e";
+    ctx.fillRect(-12, -8, 6, 6);
     // Head & Cap
     ctx.fillStyle = "#dfa070";
     ctx.beginPath();
-    ctx.arc(0, -18, 5, 0, Math.PI * 2);
+    ctx.arc(0, -16, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#0c2340";
-    ctx.fillRect(-4, -23, 8, 4);
+    ctx.fillRect(-4, -21, 8, 4);
 
     ctx.restore();
 }
 
-function drawBatter(x, y, isSwinging, swingFrame) {
+function drawBatter(x, y, isSwinging, swingProgress) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Batter Shadow
+    // Drop Shadow
     ctx.fillStyle = "rgba(0,0,0,0.4)";
     ctx.beginPath();
-    ctx.ellipse(0, 12, 16, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 12, 18, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Spiked Baseball Cleats
+    // Spiked Cleats
     ctx.fillStyle = "#111";
     ctx.fillRect(-8, 8, 6, 6);
     ctx.fillRect(4, 8, 6, 6);
 
-    // Baseball Pants (Home Whites)
+    // Home White Pinstripe Pants
     ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(-8, -8, 6, 18);
-    ctx.fillRect(3, -8, 6, 18);
-    // Navy piping down sides
-    ctx.fillStyle = "#00cecb";
-    ctx.fillRect(-9, -8, 1, 18);
-    ctx.fillRect(8, -8, 1, 18);
+    ctx.fillRect(-9, -8, 7, 18);
+    ctx.fillRect(3, -8, 7, 18);
+    ctx.fillStyle = "#0c2340"; // Pinstripes
+    ctx.fillRect(-6, -8, 1, 18);
+    ctx.fillRect(6, -8, 1, 18);
 
-    // Jersey (Authentic Pro Cut)
+    // Jersey & Gold Number
     ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(-9, -24, 19, 17);
-    ctx.fillStyle = "#00cecb";
-    ctx.fillRect(-1, -24, 2, 17); // Pinstripe
+    ctx.fillRect(-10, -25, 20, 18);
+    ctx.fillStyle = "#0c2340";
+    ctx.fillRect(-3, -25, 2, 18);
 
     // Arms & Batting Gloves
     ctx.fillStyle = "#dfa070";
-    ctx.fillRect(8, -20, 6, 10);
-    ctx.fillStyle = "#e3b341"; // Gold Batting Gloves
-    ctx.fillRect(11, -23, 6, 6);
+    ctx.fillRect(6, -21, 6, 12);
+    ctx.fillStyle = "#e3b341"; // Gloves
+    ctx.fillRect(9, -24, 6, 6);
 
-    // Head, Eye Black & Batting Helmet with Earflap
+    // Head, Eye Black & Helmet
     ctx.fillStyle = "#dfa070";
     ctx.beginPath();
-    ctx.arc(0, -29, 6, 0, Math.PI * 2);
+    ctx.arc(0, -30, 6, 0, Math.PI * 2);
     ctx.fill();
-    // Eye black strips
-    ctx.fillStyle = "#000";
-    ctx.fillRect(2, -28, 4, 1.5);
+    ctx.fillStyle = "#000"; // Eye black
+    ctx.fillRect(2, -30, 4, 1.5);
 
-    // Navy Batting Helmet
+    // Pro Batting Helmet
     ctx.fillStyle = "#0c2340";
     ctx.beginPath();
-    ctx.arc(0, -32, 7, Math.PI, 0);
+    ctx.arc(0, -33, 7, Math.PI, 0);
     ctx.fill();
-    ctx.fillRect(1, -34, 7, 4); // Earflap facing pitcher
+    ctx.fillRect(1, -35, 7, 4); // Earflap
 
-    // Wooden Maple Bat with Pine Tar (Rotates on Swing)
+    // Animated Wooden Bat Swing
     ctx.save();
-    ctx.translate(14, -22);
+    ctx.translate(12, -22);
     if (isSwinging) {
-        ctx.rotate(-swingFrame * 1.5);
+        ctx.rotate(-swingProgress * 1.8);
     } else {
-        ctx.rotate(0.3); // Ready Stance
+        ctx.rotate(0.35); // Ready stance
     }
-    // Maple Barrel
+    // Maple Wood Barrel
     ctx.fillStyle = "#b4793f";
-    ctx.fillRect(-2, -36, 4, 38);
-    // Pine Tar Handle Grip
-    ctx.fillStyle = "#1e1b18";
-    ctx.fillRect(-2, -10, 4, 12);
+    ctx.fillRect(-2, -38, 4, 40);
+    // Pine Tar Grip
+    ctx.fillStyle = "#171717";
+    ctx.fillRect(-2, -12, 4, 12);
     ctx.restore();
 
     ctx.restore();
 }
 
 function renderBroadcastHUD() {
-    // Scorebug in top left
-    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
-    ctx.fillRect(18, 16, 210, 52);
+    // 1. Pitcher Info Scorebug (Top Left)
+    ctx.fillStyle = "rgba(10, 13, 20, 0.92)";
+    ctx.fillRect(20, 20, 220, 52);
     ctx.strokeStyle = "#00cecb";
     ctx.lineWidth = 2;
-    ctx.strokeRect(18, 16, 210, 52);
+    ctx.strokeRect(20, 20, 220, 52);
 
     ctx.fillStyle = "#e3b341";
-    ctx.font = "800 11px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(`P: ${TIERS[player.tierIdx].pitcher}`, 28, 33);
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "700 10px sans-serif";
-    ctx.fillText(`FASTBALL: ${TIERS[player.tierIdx].velo} MPH`, 28, 52);
+    ctx.font = "800 12px sans-serif";
+    ctx.fillText(`P: ${TIERS[player.tierIdx].pitcher}`, 32, 38);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "700 11px sans-serif";
+    ctx.fillText(`4-SEAM FASTBALL: ${TIERS[player.tierIdx].velo} MPH`, 32, 57);
 
-    // Count Box (Top Right)
-    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
-    ctx.fillRect(660, 16, 120, 52);
+    // 2. Count Box (Top Right)
+    ctx.fillStyle = "rgba(10, 13, 20, 0.92)";
+    ctx.fillRect(720, 20, 120, 52);
     ctx.strokeStyle = "#e3b341";
     ctx.lineWidth = 2;
-    ctx.strokeRect(660, 16, 120, 52);
+    ctx.strokeRect(720, 20, 120, 52);
 
     ctx.fillStyle = "#e3b341";
     ctx.font = "800 11px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("COUNT", 720, 32);
+    ctx.fillText("COUNT", 780, 36);
     ctx.fillStyle = "#00cecb";
-    ctx.font = "900 18px monospace";
-    ctx.fillText(`${atBat.balls} - ${atBat.strikes}`, 720, 53);
+    ctx.font = "900 20px monospace";
+    ctx.fillText(`${atBat.balls} - ${atBat.strikes}`, 780, 58);
 
-    // Plate Coverage Indicator (PCI) Reticle
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(375, 395, 50, 48); // Strike zone box
-    ctx.beginPath();
-    ctx.arc(400, 419, 14, 0, Math.PI * 2);
-    ctx.stroke();
+    // 3. Timing Window Meter (Assists Hitting)
+    if (atBat.phase === "THROWN") {
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(330, 20, 200, 18);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.strokeRect(330, 20, 200, 18);
 
-    // Broadcast Lower-Third Banner
-    ctx.fillStyle = "rgba(13, 17, 23, 0.95)";
-    ctx.fillRect(60, 460, 680, 50);
-    ctx.strokeStyle = "#30363d";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(60, 460, 680, 50);
+        // Sweet spot marker (85%)
+        ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
+        ctx.fillRect(330 + (200 * 0.78), 20, 200 * 0.16, 18);
 
-    ctx.fillStyle = "#facc15";
+        // Progress bar
+        ctx.fillStyle = "#e3b341";
+        ctx.fillRect(330, 22, 200 * atBat.pitchProgress, 14);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillText("TIMING ZONE", 430, 32);
+    }
+
+    // 4. Center Broadcast Lower-Third Feedback
+    ctx.fillStyle = "rgba(10, 13, 20, 0.95)";
+    ctx.fillRect(80, 465, 700, 44);
+    ctx.strokeStyle = "#1f2937";
+    ctx.strokeRect(80, 465, 700, 44);
+
+    ctx.fillStyle = atBat.feedbackColor;
     ctx.font = "800 14px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(atBat.bannerText, 400, 482);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "600 11px sans-serif";
-    ctx.fillText(atBat.bannerSub, 400, 498);
+    ctx.fillText(atBat.hitFeed, 430, 492);
 }
 
 /* ==========================================================================
-   MAIN GAME LOOP
+   LOOP
    ========================================================================== */
 function gameLoop() {
-    ctx.clearRect(0, 0, 800, 520);
-
-    if (scene === "CLUBHOUSE") {
-        updateClubhouse();
-        renderClubhouse();
-    } else if (scene === "AT_BAT") {
-        updateAtBatPhysics();
-        renderBallpark();
-    }
-
+    updatePhysics();
+    render();
     requestAnimationFrame(gameLoop);
 }
+
+// Queue opening pitch automatically on load
+window.onload = () => {
+    updateUI();
+    setTimeout(queuePitch, 800);
+};
 
 gameLoop();
 </script>
