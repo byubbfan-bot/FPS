@@ -3,794 +3,829 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Baseball: Road to the Show (Game Boy Edition)</title>
+    <title>Road to the Show: 64-Bit Career RPG</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
-            image-rendering: pixelated;
         }
         body {
-            background: #111;
+            background: #080c10;
             margin: 0;
-            padding: 20px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            font-family: 'Courier New', Courier, monospace;
-            color: #9bbc0f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f0f6fc;
         }
-        /* Handheld Bezel */
-        .gameboy-chassis {
-            background: #c4bebb;
-            padding: 24px 24px 34px 24px;
-            border-radius: 16px 16px 50px 16px;
-            box-shadow: 0 12px 0 #8b8582, 0 20px 30px rgba(0,0,0,0.8);
-            border: 2px solid #ded8d5;
+        /* Arcade Cabinet / High-Fi Frame */
+        .arcade-cabinet {
+            background: #151a22;
+            padding: 16px;
+            border-radius: 14px;
+            border: 2px solid #2d3748;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 25px rgba(0, 206, 203, 0.15);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .screen-bezel {
-            background: #77747f;
-            padding: 20px 24px 24px 24px;
-            border-radius: 8px 8px 30px 8px;
-            box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .screen-header {
+        .cabinet-titlebar {
             width: 100%;
             display: flex;
             justify-content: space-between;
-            font-size: 9px;
-            color: #b8b5bf;
-            font-weight: bold;
+            align-items: center;
+            padding: 4px 8px 10px 8px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #00cecb;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            text-transform: uppercase;
         }
-        .battery-led {
-            width: 8px;
-            height: 8px;
-            background: #ff3b30;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 6px #ff3b30;
-            margin-right: 4px;
+        .canvas-wrapper {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 3px solid #00cecb;
+            box-shadow: inset 0 0 16px rgba(0,0,0,0.8);
+            background: #000;
         }
-        /* Authentic 160x144 Game Boy Resolution scaled up 3x */
         canvas {
-            background: #9bbc0f;
-            width: 480px;
-            height: 432px;
             display: block;
-            border: 3px solid #0f380f;
-            box-shadow: inset 0 0 8px rgba(15, 56, 15, 0.4);
+            image-rendering: auto;
         }
-        /* Game Boy Controls */
-        .controls-row {
-            width: 100%;
-            margin-top: 24px;
+        /* Mobile / Touch D-Pad */
+        .controls-deck {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            margin-top: 14px;
             padding: 0 10px;
         }
-        .dpad {
+        .dpad-grid {
             display: grid;
-            grid-template-columns: repeat(3, 34px);
-            grid-template-rows: repeat(3, 34px);
-            background: #2b2b2b;
-            padding: 3px;
-            border-radius: 6px;
-            box-shadow: 0 4px 0 #111;
+            grid-template-columns: repeat(3, 40px);
+            grid-template-rows: repeat(3, 40px);
+            gap: 3px;
         }
-        .dpad-btn {
-            background: #2b2b2b;
-            border: none;
-            cursor: pointer;
-            outline: none;
-        }
-        .dpad-btn:active {
-            background: #111;
-        }
-        .btn-ab-group {
-            display: flex;
-            gap: 16px;
-            transform: rotate(-25deg);
-        }
-        .gb-round-btn {
-            background: #8b1d42;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: none;
-            box-shadow: 0 4px 0 #540e25;
-            cursor: pointer;
+        .deck-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
             color: #fff;
             font-weight: bold;
-            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 14px;
         }
-        .gb-round-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #540e25;
+        .deck-btn:active {
+            background: #00cecb;
+            color: #000;
         }
-        .keyboard-hint {
-            margin-top: 15px;
+        .action-cluster {
+            display: flex;
+            gap: 12px;
+        }
+        .round-action-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #238636;
+            border: 2px solid #2ea043;
+            color: #fff;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .round-action-btn:active {
+            transform: translateY(2px);
+            background: #2ea043;
+        }
+        .btn-b {
+            background: #da3633;
+            border-color: #f85149;
+        }
+        .btn-b:active {
+            background: #f85149;
+        }
+        .key-hints {
             font-size: 12px;
-            color: #888;
-            text-align: center;
+            color: #8b949e;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="gameboy-chassis">
-    <div class="screen-bezel">
-        <div class="screen-header">
-            <div><span class="battery-led"></span>BATTERY</div>
-            <div>DOT MATRIX WITH STEREO SOUND</div>
-        </div>
-        <canvas id="gb-screen" width="160" height="144"></canvas>
+<div class="arcade-cabinet">
+    <div class="cabinet-titlebar">
+        <span>⚾ MLB RTTS 64-BIT EDITION</span>
+        <span id="tier-indicator" style="color: #e3b341;">SINGLE-A BALLPARK</span>
     </div>
 
-    <div class="controls-row">
-        <!-- D-PAD -->
-        <div class="dpad">
-            <div></div><button class="dpad-btn" id="ctrl-up"></button><div></div>
-            <button class="dpad-btn" id="ctrl-left"></button><div></div><button class="dpad-btn" id="ctrl-right"></button>
-            <div></div><button class="dpad-btn" id="ctrl-down"></button><div></div>
+    <div class="canvas-wrapper">
+        <canvas id="rtts-canvas" width="640" height="480"></canvas>
+    </div>
+
+    <div class="controls-deck">
+        <div class="dpad-grid">
+            <div></div><button class="deck-btn" id="d-up">▲</button><div></div>
+            <button class="deck-btn" id="d-left">◀</button><div></div><button class="deck-btn" id="d-right">▶</button>
+            <div></div><button class="deck-btn" id="d-down">▼</button><div></div>
         </div>
 
-        <!-- A & B Buttons -->
-        <div class="btn-ab-group">
-            <button class="gb-round-btn" id="ctrl-b">B</button>
-            <button class="gb-round-btn" id="ctrl-a">A</button>
+        <div style="font-size: 12px; color: #8b949e; text-align: center;">
+            <strong>A</strong> = Swing / Select / Talk<br>
+            <strong>B</strong> = Take Pitch / Cancel
+        </div>
+
+        <div class="action-cluster">
+            <button class="round-action-btn btn-b" id="act-b">B</button>
+            <button class="round-action-btn" id="act-a">A</button>
         </div>
     </div>
 </div>
 
-<div class="keyboard-hint">
-    <strong>Keyboard Controls:</strong> [W,A,S,D] or [Arrows] = Walk | [Z] or [Enter] = <strong>A</strong> Button | [X] or [Backspace] = <strong>B</strong> Button
+<div class="key-hints">
+    [W, A, S, D] or [Arrows] = Walk | [Z] or [Enter] = <strong>A</strong> Button | [X] or [Backspace] = <strong>B</strong> Button
 </div>
 
 <script>
 /* ==========================================================================
-   GAME BOY COLOR PALETTE & AUDIO SYNTHESIZER
+   AUDIO SYNTHESIZER (BAT CRACKS, CROWDS, BEEPS)
    ========================================================================== */
-const C_DARKEST = "#0f380f"; // Primary outline & text
-const C_DARK    = "#306230"; // Deep shadow / walls
-const C_LIGHT   = "#8bac0f"; // Ground / UI fills
-const C_LIGHTEST= "#9bbc0f"; // Background highlight
-
-const canvas = document.getElementById("gb-screen");
-const ctx = canvas.getContext("2d");
-
-// Web Audio API 8-Bit Beeper
 let audioCtx = null;
-function play8BitTone(freq, duration, type = "square") {
+function playSound(type) {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === "suspended") audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        const t = audioCtx.currentTime;
+
+        if (type === "bat_crack") {
+            // High-energy wooden crack
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(320, t);
+            osc.frequency.exponentialRampToValueAtTime(80, t + 0.12);
+            gain.gain.setValueAtTime(0.5, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.12);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+        } else if (type === "select") {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(640, t);
+            gain.gain.setValueAtTime(0.08, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.05);
+        } else if (type === "whiff") {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(140, t);
+            osc.frequency.linearRampToValueAtTime(40, t + 0.18);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.18);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.18);
+        }
     } catch(e) {}
 }
 
 /* ==========================================================================
-   PLAYER & RPG STATE
+   GAME ENGINE & ROAD TO THE SHOW STATE
    ========================================================================== */
+const canvas = document.getElementById("rtts-canvas");
+const ctx = canvas.getContext("2d");
+
+const TIERS = [
+    { name: "Single-A Affiliate", targetXP: 120, pitcher: "Cole Hammer", pitchVelo: "92 MPH", pitchDiff: 45 },
+    { name: "Double-A (Prospects)", targetXP: 260, pitcher: "Julio Santos", pitchVelo: "96 MPH", pitchDiff: 60 },
+    { name: "Triple-A (Taxi Squad)", targetXP: 450, pitcher: "Trevor Vance", pitchVelo: "99 MPH", pitchDiff: 75 },
+    { name: "MLB: The Show", targetXP: 9999, pitcher: "Gerrit Cy Young", pitchVelo: "102 MPH", pitchDiff: 92 }
+];
+
 const player = {
-    tileX: 4,
-    tileY: 4,
-    pixelX: 4 * 16,
-    pixelY: 4 * 16,
+    x: 200,
+    y: 280,
+    w: 24,
+    h: 38,
+    speed: 3.2,
     dir: "down",
-    isMoving: false,
-    walkFrame: 0,
-    // RPG Stats
-    name: "RED",
-    badgeTier: 0, // 0: Single-A, 1: Double-A, 2: Triple-A, 3: The Show (Champion)
-    hp: 20,
-    maxHp: 20,
-    exp: 0,
-    level: 5,
-    contact: 12,
-    power: 10,
-    eye: 11
+    walking: false,
+    frame: 0,
+    // Attributes
+    name: "Brennan",
+    position: "SS",
+    tierIdx: 0,
+    contact: 55,
+    power: 50,
+    discipline: 52,
+    speedStat: 58,
+    progPoints: 0,
+    energy: 100,
+    hits: 0,
+    ab: 0,
+    hrs: 0
 };
 
-const LEAGUE_BADGES = [
-    { name: "Single-A Ace", leader: "BROCK", lv: 7, hp: 25, badge: "BOULDER PIN" },
-    { name: "Double-A Ace", leader: "MISTY", lv: 14, hp: 45, badge: "CASCADE PIN" },
-    { name: "Triple-A Ace", leader: "SURGE", lv: 24, hp: 75, badge: "THUNDER PIN" },
-    { name: "The Show GM",  leader: "GIOVANNI", lv: 40, hp: 120, badge: "EARTH PIN" }
-];
+let gameState = "OVERWORLD"; // OVERWORLD, DIALOGUE, AT_BAT
+let dialogueData = { speaker: "", text: "", step: 0, totalSteps: 0, cb: null };
 
-/* ==========================================================================
-   TILEMAP (16x16 Tiles, 10x9 Viewport)
-   0: Grass
-   1: Dirt Path
-   2: Facility Wall (Solid)
-   3: Bullpen Grass (Wild Pitcher Encounter)
-   4: Gym Leader / Ace Mound
-   5: Roof / Sign
-   ========================================================================== */
-const MAP_W = 14;
-const MAP_H = 14;
-const OVERWORLD_MAP = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,5,5,2,1,1,1,1,1,1,2,5,5,2],
-    [2,2,2,2,1,0,0,0,0,1,2,2,2,2],
-    [2,1,1,1,1,0,4,0,0,1,1,1,1,2],
-    [2,1,0,0,1,0,0,0,0,1,0,0,1,2],
-    [2,1,0,3,3,3,3,3,0,1,0,0,1,2],
-    [2,1,0,3,3,3,3,3,0,1,1,1,1,2],
-    [2,1,1,1,1,1,1,1,1,1,0,0,1,2],
-    [2,0,0,1,0,0,0,0,1,1,0,0,1,2],
-    [2,0,0,1,0,2,2,0,1,1,1,1,1,2],
-    [2,3,3,1,0,2,2,0,1,0,0,0,1,2],
-    [2,3,3,1,1,1,1,1,1,0,0,0,1,2],
-    [2,0,0,0,0,0,0,0,0,0,0,0,0,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2]
-];
-
-function isTileBlocked(tx, ty) {
-    if (tx < 0 || tx >= MAP_W || ty < 0 || ty >= MAP_H) return true;
-    const tile = OVERWORLD_MAP[ty][tx];
-    return tile === 2 || tile === 5;
-}
-
-/* ==========================================================================
-   GAME ENGINE STATE MACHINE
-   OVERWORLD, DIALOGUE, BATTLE_TRANSITION, BATTLE
-   ========================================================================== */
-let gameState = "OVERWORLD";
-let transitionTimer = 0;
-
-// Dialogue
-let dialogueText = "";
-let dialogueIdx = 0;
-let dialogueCallback = null;
-
-function showDialogue(text, cb = null) {
-    gameState = "DIALOGUE";
-    dialogueText = text;
-    dialogueIdx = 0;
-    dialogueCallback = cb;
-    play8BitTone(600, 0.05);
-}
-
-// Battle State
-const battle = {
-    oppName: "",
-    oppLv: 1,
-    oppHp: 1,
-    oppMaxHp: 1,
-    isGymLeader: false,
+// At-Bat Battle System
+const atBat = {
     balls: 0,
     strikes: 0,
-    cursor: 0, // 0: FIGHT, 1: EYE, 2: ITEM, 3: RUN
-    subCursor: 0,
-    phase: "MENU", // MENU, SUB_FIGHT, TEXT, OPP_TURN
-    logText: "",
-    logCb: null
+    pitcherHp: 100,
+    batterHp: 100,
+    pitchState: "READY", // READY, PITCHING, RESULT
+    pitchBallX: 420,
+    pitchBallY: 140,
+    ballDestX: 200,
+    ballDestY: 280,
+    ballProgress: 0,
+    menuCursor: 0, // 0: Contact Swing, 1: Power Swing, 2: Take Pitch, 3: Bunt
+    logMsg: "Step into the batter's box! Select approach."
 };
 
 /* ==========================================================================
-   INPUT HANDLING (Gamepad + Keyboard)
+   INPUTS (KEYBOARD & TOUCH)
    ========================================================================== */
-const keys = { up: false, down: false, left: false, right: false, a: false, b: false };
+const keys = { up: false, down: false, left: false, right: false };
 
-function handleKeyDown(k) {
-    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-    if (k === "ArrowUp" || k === "w") keys.up = true;
-    if (k === "ArrowDown" || k === "s") keys.down = true;
-    if (k === "ArrowLeft" || k === "a") keys.left = true;
-    if (k === "ArrowRight" || k === "d") keys.right = true;
-    if (k === "z" || k === "Enter" || k === " ") pressA();
-    if (k === "x" || k === "Backspace") pressB();
-}
+window.addEventListener("keydown", e => {
+    const k = e.key.toLowerCase();
+    if (k === "arrowup" || k === "w") keys.up = true;
+    if (k === "arrowdown" || k === "s") keys.down = true;
+    if (k === "arrowleft" || k === "a") keys.left = true;
+    if (k === "arrowright" || k === "d") keys.right = true;
+    if (k === "z" || k === "enter" || k === " ") pressActionA();
+    if (k === "x" || k === "backspace") pressActionB();
+});
 
-function handleKeyUp(k) {
-    if (k === "ArrowUp" || k === "w") keys.up = false;
-    if (k === "ArrowDown" || k === "s") keys.down = false;
-    if (k === "ArrowLeft" || k === "a") keys.left = false;
-    if (k === "ArrowRight" || k === "d") keys.right = false;
-}
+window.addEventListener("keyup", e => {
+    const k = e.key.toLowerCase();
+    if (k === "arrowup" || k === "w") keys.up = false;
+    if (k === "arrowdown" || k === "s") keys.down = false;
+    if (k === "arrowleft" || k === "a") keys.left = false;
+    if (k === "arrowright" || k === "d") keys.right = false;
+});
 
-window.addEventListener("keydown", e => handleKeyDown(e.key));
-window.addEventListener("keyup", e => handleKeyUp(e.key));
-
-// Touch / Button Clicks
-function bindBtn(id, pressFn) {
+function bindControl(id, onDown, onUp) {
     const el = document.getElementById(id);
-    el.addEventListener("mousedown", pressFn);
-    el.addEventListener("touchstart", (e) => { e.preventDefault(); pressFn(); });
+    el.addEventListener("mousedown", onDown);
+    el.addEventListener("mouseup", onUp);
+    el.addEventListener("touchstart", e => { e.preventDefault(); onDown(); });
+    el.addEventListener("touchend", e => { e.preventDefault(); onUp(); });
 }
-bindBtn("ctrl-up", () => { keys.up = true; setTimeout(() => keys.up = false, 120); });
-bindBtn("ctrl-down", () => { keys.down = true; setTimeout(() => keys.down = false, 120); });
-bindBtn("ctrl-left", () => { keys.left = true; setTimeout(() => keys.left = false, 120); });
-bindBtn("ctrl-right", () => { keys.right = true; setTimeout(() => keys.right = false, 120); });
-bindBtn("ctrl-a", pressA);
-bindBtn("ctrl-b", pressB);
 
-function pressA() {
-    play8BitTone(700, 0.04);
+bindControl("d-up", () => keys.up = true, () => keys.up = false);
+bindControl("d-down", () => keys.down = true, () => keys.down = false);
+bindControl("d-left", () => keys.left = true, () => keys.left = false);
+bindControl("d-right", () => keys.right = true, () => keys.right = false);
+document.getElementById("act-a").addEventListener("click", pressActionA);
+document.getElementById("act-b").addEventListener("click", pressActionB);
+
+function pressActionA() {
+    playSound("select");
     if (gameState === "DIALOGUE") {
-        if (dialogueIdx < dialogueText.length) {
-            dialogueIdx = dialogueText.length; // Skip typewriter
-        } else {
-            gameState = "OVERWORLD";
-            if (dialogueCallback) dialogueCallback();
-        }
+        advanceDialogue();
     } else if (gameState === "OVERWORLD") {
         checkOverworldInteract();
-    } else if (gameState === "BATTLE") {
-        handleBattleConfirm();
+    } else if (gameState === "AT_BAT") {
+        confirmAtBatSelection();
     }
 }
 
-function pressB() {
-    play8BitTone(300, 0.04);
-    if (gameState === "BATTLE" && battle.phase === "SUB_FIGHT") {
-        battle.phase = "MENU";
+function pressActionB() {
+    if (gameState === "AT_BAT") {
+        atBat.menuCursor = 2; // Jump cursor to "Take Pitch"
+        confirmAtBatSelection();
     }
 }
 
 /* ==========================================================================
-   OVERWORLD LOGIC
+   OVERWORLD COLLISION & OBJECTS
    ========================================================================== */
-function checkOverworldInteract() {
-    let tx = player.tileX;
-    let ty = player.tileY;
-    if (player.dir === "up") ty--;
-    if (player.dir === "down") ty++;
-    if (player.dir === "left") tx--;
-    if (player.dir === "right") tx++;
+const npcs = [
+    {
+        name: "Manager Skip",
+        x: 140,
+        y: 110,
+        color: "#c68a4c",
+        text: "Keep driving balls to the opposite field, Brennan! Step onto the home plate dirt to face live arms."
+    },
+    {
+        name: "Hitting Coach",
+        x: 480,
+        y: 350,
+        color: "#2ea043",
+        text: "Let's work on hand speed! Contact rating increased by +2."
+    }
+];
 
-    if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
-        let t = OVERWORLD_MAP[ty][tx];
-        if (t === 4) {
-            const badge = LEAGUE_BADGES[player.badgeTier];
-            showDialogue(`ACE ${badge.leader}: You want the ${badge.badge}!? Step into the box!`, () => {
-                startBattle(badge.leader, badge.lv, badge.hp, true);
-            });
-            return;
-        } else if (t === 5) {
-            showDialogue("CLUBHOUSE: Rest here to recover Batter HP!");
-            player.hp = player.maxHp;
+function checkOverworldInteract() {
+    for (let npc of npcs) {
+        let d = Math.hypot((npc.x + 12) - (player.x + 12), (npc.y + 16) - (player.y + 20));
+        if (d < 42) {
+            triggerDialogue(npc.name, npc.text);
+            if (npc.name === "Hitting Coach") {
+                player.contact += 2;
+            }
             return;
         }
     }
+}
+
+function triggerDialogue(speaker, text, cb = null) {
+    gameState = "DIALOGUE";
+    dialogueData = { speaker, text, step: 0, cb };
+}
+
+function advanceDialogue() {
+    gameState = "OVERWORLD";
+    if (dialogueData.cb) dialogueData.cb();
 }
 
 function updateOverworld() {
     if (gameState !== "OVERWORLD") return;
 
-    if (!player.isMoving) {
-        let targetX = player.tileX;
-        let targetY = player.tileY;
+    let dx = 0;
+    let dy = 0;
 
-        if (keys.up) { player.dir = "up"; targetY--; }
-        else if (keys.down) { player.dir = "down"; targetY++; }
-        else if (keys.left) { player.dir = "left"; targetX--; }
-        else if (keys.right) { player.dir = "right"; targetX++; }
+    if (keys.up) { dy -= player.speed; player.dir = "up"; }
+    if (keys.down) { dy += player.speed; player.dir = "down"; }
+    if (keys.left) { dx -= player.speed; player.dir = "left"; }
+    if (keys.right) { dx += player.speed; player.dir = "right"; }
 
-        if (targetX !== player.tileX || targetY !== player.tileY) {
-            if (!isTileBlocked(targetX, targetY)) {
-                player.tileX = targetX;
-                player.tileY = targetY;
-                player.isMoving = true;
-            }
-        }
-    } else {
-        // Smooth pixel interpolation
-        const step = 2;
-        const targetPx = player.tileX * 16;
-        const targetPy = player.tileY * 16;
+    player.walking = (dx !== 0 || dy !== 0);
+    if (player.walking) player.frame += 0.2;
 
-        if (player.pixelX < targetPx) player.pixelX = Math.min(targetPx, player.pixelX + step);
-        if (player.pixelX > targetPx) player.pixelX = Math.max(targetPx, player.pixelX - step);
-        if (player.pixelY < targetPy) player.pixelY = Math.min(targetPy, player.pixelY + step);
-        if (player.pixelY > targetPy) player.pixelY = Math.max(targetPy, player.pixelY - step);
+    // Arena Bounds
+    let nextX = Math.max(30, Math.min(580, player.x + dx));
+    let nextY = Math.max(70, Math.min(420, player.y + dy));
 
-        player.walkFrame++;
+    player.x = nextX;
+    player.y = nextY;
 
-        if (player.pixelX === targetPx && player.pixelY === targetPy) {
-            player.isMoving = false;
-            // Check wild grass encounter
-            const currentTile = OVERWORLD_MAP[player.tileY][player.tileX];
-            if (currentTile === 3 && Math.random() < 0.22) {
-                play8BitTone(880, 0.2, "sawtooth");
-                startBattle("RIVAL RELIEVER", player.level + Math.floor(Math.random()*2), 16 + player.level * 3, false);
-            }
-        }
+    // Check Home Plate Encounter Zone
+    // Home plate is located at X: 290 - 350, Y: 340 - 400
+    if (player.x > 290 && player.x < 350 && player.y > 340 && player.y < 400) {
+        player.y = 310; // push north out of zone
+        startAtBatEncounter();
     }
 }
 
 /* ==========================================================================
-   POKÉMON TURN-BASED BATTER BATTLE SYSTEM
+   AT-BAT BATTLE SYSTEM
    ========================================================================== */
-function startBattle(oppName, lv, hp, isGymLeader) {
-    gameState = "BATTLE_TRANSITION";
-    transitionTimer = 0;
-    battle.oppName = oppName;
-    battle.oppLv = lv;
-    battle.oppHp = hp;
-    battle.oppMaxHp = hp;
-    battle.isGymLeader = isGymLeader;
-    battle.balls = 0;
-    battle.strikes = 0;
-    battle.cursor = 0;
-    battle.subCursor = 0;
-    battle.phase = "MENU";
+function startAtBatEncounter() {
+    gameState = "AT_BAT";
+    atBat.balls = 0;
+    atBat.strikes = 0;
+    atBat.pitcherHp = 100;
+    atBat.pitchState = "READY";
+    atBat.menuCursor = 0;
+    atBat.logMsg = `Now Batting: ${player.name} vs. ${TIERS[player.tierIdx].pitcher} (${TIERS[player.tierIdx].pitchVelo})!`;
 }
 
-function handleBattleConfirm() {
-    if (battle.phase === "TEXT") {
-        if (battle.logCb) {
-            let cb = battle.logCb;
-            battle.logCb = null;
-            cb();
-        } else {
-            battle.phase = "MENU";
-        }
-        return;
-    }
+function confirmAtBatSelection() {
+    if (atBat.pitchState !== "READY") return;
+    atBat.pitchState = "PITCHING";
+    atBat.ballProgress = 0;
 
-    if (battle.phase === "MENU") {
-        if (battle.cursor === 0) { // FIGHT
-            battle.phase = "SUB_FIGHT";
-            battle.subCursor = 0;
-        } else if (battle.cursor === 1) { // TAKE PITCH
-            executeBatterMove("TAKE");
-        } else if (battle.cursor === 2) { // BUNT
-            executeBatterMove("BUNT");
-        } else if (battle.cursor === 3) { // RUN
-            if (battle.isGymLeader) {
-                setBattleText("Can't forfeit a sanctioned League Match!");
+    const diff = TIERS[player.tierIdx].pitchDiff;
+
+    // Pitch delivery animation then roll calculation
+    setTimeout(() => {
+        atBat.pitchState = "READY";
+        if (atBat.menuCursor === 0) {
+            // Contact Swing
+            let roll = player.contact + Math.floor(Math.random() * 40);
+            if (roll > diff) {
+                playSound("bat_crack");
+                let dmg = 35;
+                atBat.pitcherHp = Math.max(0, atBat.pitcherHp - dmg);
+                player.hits++;
+                player.ab++;
+                player.progPoints += 25;
+                atBat.logMsg = "⚾ Hard lined drive through the 5-6 hole for a clean SINGLE!";
             } else {
-                setBattleText("Got away safely back to the dugout!", () => {
+                playSound("whiff");
+                atBat.strikes++;
+                atBat.logMsg = "Swing and a miss on a sharp biting slider!";
+            }
+        } else if (atBat.menuCursor === 1) {
+            // Power Swing
+            let roll = player.power + Math.floor(Math.random() * 45) - 15;
+            if (roll > diff) {
+                playSound("bat_crack");
+                atBat.pitcherHp = 0;
+                player.hits++;
+                player.hrs++;
+                player.ab++;
+                player.progPoints += 50;
+                atBat.logMsg = "🔥 CRUSHED! DEEP TO THE UPPER DECK! 440-FT HOME RUN!";
+            } else {
+                playSound("whiff");
+                atBat.strikes++;
+                atBat.logMsg = "Huge hack and missed the high heater!";
+            }
+        } else if (atBat.menuCursor === 2) {
+            // Take Pitch
+            let inZone = Math.random() < 0.60;
+            if (!inZone) {
+                atBat.balls++;
+                atBat.logMsg = "Good eye! Slider missed low and outside. Ball!";
+            } else {
+                atBat.strikes++;
+                atBat.logMsg = "Fastball paints the outside corner. Strike called!";
+            }
+        } else if (atBat.menuCursor === 3) {
+            // Drag Bunt
+            if (player.speedStat > 50 && Math.random() < 0.65) {
+                playSound("bat_crack");
+                atBat.pitcherHp = Math.max(0, atBat.pitcherHp - 30);
+                player.hits++;
+                player.ab++;
+                player.progPoints += 20;
+                atBat.logMsg = "⚡ Laid down a beauty along the third-base line! Beaten out for a hit!";
+            } else {
+                atBat.strikes++;
+                atBat.logMsg = "Bunt popped foul back to the screen.";
+            }
+        }
+
+        // Count Resolutions
+        if (atBat.pitcherHp <= 0) {
+            setTimeout(() => {
+                triggerDialogue("Official Scorer", "You conquered the pitcher! Call-up progress rewarded!", () => {
+                    checkCallUpPromotion();
+                });
+            }, 1000);
+        } else if (atBat.strikes >= 3) {
+            player.ab++;
+            setTimeout(() => {
+                triggerDialogue("Umpire", "STRIKE THREE! Down on strikes. Regroup in the dugout.", () => {
                     gameState = "OVERWORLD";
                 });
-            }
-        }
-    } else if (battle.phase === "SUB_FIGHT") {
-        if (battle.subCursor === 0) executeBatterMove("CONTACT");
-        else if (battle.subCursor === 1) executeBatterMove("POWER");
-    }
-}
-
-function setBattleText(text, cb = null) {
-    battle.phase = "TEXT";
-    battle.logText = text;
-    battle.logCb = cb;
-}
-
-function executeBatterMove(move) {
-    if (move === "CONTACT") {
-        let dmg = Math.max(4, player.contact - 2 + Math.floor(Math.random() * 6));
-        battle.oppHp = Math.max(0, battle.oppHp - dmg);
-        play8BitTone(520, 0.15, "square");
-        setBattleText(`${player.name} poked a sharp single! Took ${dmg} pitcher stamina!`, () => {
-            checkBattleWinOrCounter();
-        });
-    } else if (move === "POWER") {
-        if (Math.random() < 0.65) {
-            let dmg = Math.max(8, player.power * 2 + Math.floor(Math.random() * 8));
-            battle.oppHp = Math.max(0, battle.oppHp - dmg);
-            play8BitTone(220, 0.3, "sawtooth");
-            setBattleText(`BOOM! Deep drive to the gap! Dealt ${dmg} damage!`, () => {
-                checkBattleWinOrCounter();
-            });
-        } else {
-            battle.strikes++;
-            play8BitTone(150, 0.1, "triangle");
-            setBattleText(`Huge swing and a whiff! Strike ${battle.strikes}!`, () => {
-                checkCountConditions();
-            });
-        }
-    } else if (move === "TAKE") {
-        if (Math.random() < 0.55) {
-            battle.balls++;
-            setBattleText(`Ball outside the zone! Count is ${battle.balls}-${battle.strikes}.`, () => {
-                checkCountConditions();
-            });
-        } else {
-            battle.strikes++;
-            setBattleText(`Called strike on the corner! Count is ${battle.balls}-${battle.strikes}.`, () => {
-                checkCountConditions();
-            });
-        }
-    } else if (move === "BUNT") {
-        let dmg = 6;
-        battle.oppHp = Math.max(0, battle.oppHp - dmg);
-        setBattleText(`Laid down a surprise squeeze bunt for ${dmg} damage!`, () => {
-            checkBattleWinOrCounter();
-        });
-    }
-}
-
-function checkCountConditions() {
-    if (battle.strikes >= 3) {
-        player.hp = Math.max(0, player.hp - 8);
-        setBattleText("STRIKE THREE! Down on strikes! Lost 8 HP.", () => {
-            if (player.hp <= 0) {
-                setBattleText(`${player.name} blacked out back to the Clubhouse...`, () => {
-                    player.hp = player.maxHp;
-                    player.tileX = 4;
-                    player.tileY = 4;
-                    player.pixelX = 4 * 16;
-                    player.pixelY = 4 * 16;
-                    gameState = "OVERWORLD";
+            }, 1000);
+        } else if (atBat.balls >= 4) {
+            player.ab++;
+            player.progPoints += 20;
+            setTimeout(() => {
+                triggerDialogue("Umpire", "BALL FOUR! Drew the walk and showed major-league discipline!", () => {
+                    checkCallUpPromotion();
                 });
-            } else {
-                battle.strikes = 0;
-                battle.balls = 0;
-                pitcherCounterAttack();
-            }
-        });
-    } else if (battle.balls >= 4) {
-        battle.oppHp = Math.max(0, battle.oppHp - 15);
-        setBattleText("BALL FOUR! Drew the walk! Pitcher loses composure!", () => {
-            battle.balls = 0;
-            battle.strikes = 0;
-            checkBattleWinOrCounter();
-        });
-    } else {
-        pitcherCounterAttack();
-    }
-}
-
-function pitcherCounterAttack() {
-    let dmg = Math.max(2, Math.floor(battle.oppLv * 1.2) + Math.floor(Math.random() * 3));
-    player.hp = Math.max(0, player.hp - dmg);
-    play8BitTone(180, 0.2, "noise");
-    setBattleText(`Ace hurled a 98mph heater inside! Red took ${dmg} damage!`, () => {
-        if (player.hp <= 0) {
-            setBattleText(`${player.name} struck out and passed out...`, () => {
-                player.hp = player.maxHp;
-                player.tileX = 4;
-                player.tileY = 4;
-                player.pixelX = 4 * 16;
-                player.pixelY = 4 * 16;
-                gameState = "OVERWORLD";
-            });
-        } else {
-            battle.phase = "MENU";
+            }, 1000);
         }
-    });
+    }, 600);
 }
 
-function checkBattleWinOrCounter() {
-    if (battle.oppHp <= 0) {
-        play8BitTone(800, 0.3, "square");
-        setBattleText(`The rival pitcher exhausted their stamina! Victory!`, () => {
-            player.exp += 35;
-            if (player.exp >= 50) {
-                player.level++;
-                player.contact += 3;
-                player.power += 3;
-                player.maxHp += 5;
-                player.hp = player.maxHp;
-                player.exp = 0;
-                setBattleText(`LEVEL UP! ${player.name} grew to Lv. ${player.level}! Stats increased!`, () => {
-                    resolvePostBattle();
-                });
-            } else {
-                resolvePostBattle();
-            }
-        });
-    } else {
-        pitcherCounterAttack();
+function checkCallUpPromotion() {
+    gameState = "OVERWORLD";
+    let curTier = TIERS[player.tierIdx];
+    if (player.progPoints >= curTier.targetXP && player.tierIdx < TIERS.length - 1) {
+        player.tierIdx++;
+        document.getElementById("tier-indicator").innerText = TIERS[player.tierIdx].name.toUpperCase();
+        triggerDialogue("FRONT OFFICE GM", `🚨 CALL-UP ALERT! Pack your bags! You're promoted to ${TIERS[player.tierIdx].name}!`);
     }
 }
 
-function resolvePostBattle() {
-    if (battle.isGymLeader) {
-        const badge = LEAGUE_BADGES[player.badgeTier];
-        player.badgeTier++;
-        setBattleText(`Received the ${badge.badge} from ${badge.leader}! Promoted to next division!`, () => {
-            if (player.badgeTier >= LEAGUE_BADGES.length) {
-                setBattleText("CONGRATULATIONS! You reached THE MAJORS and entered the Hall of Fame!", () => {
-                    gameState = "OVERWORLD";
-                });
-            } else {
-                gameState = "OVERWORLD";
-            }
-        });
-    } else {
-        gameState = "OVERWORLD";
-    }
-}
-
-// Battle Menu navigation
+// Menu Navigation
 window.addEventListener("keydown", e => {
-    if (gameState !== "BATTLE") return;
-    if (battle.phase === "MENU") {
-        if (e.key === "ArrowLeft" || e.key === "a") battle.cursor = 0;
-        if (e.key === "ArrowRight" || e.key === "d") battle.cursor = 1;
-        if (e.key === "ArrowUp" || e.key === "w") battle.cursor = 2;
-        if (e.key === "ArrowDown" || e.key === "s") battle.cursor = 3;
-    } else if (battle.phase === "SUB_FIGHT") {
-        if (e.key === "ArrowUp" || e.key === "w") battle.subCursor = 0;
-        if (e.key === "ArrowDown" || e.key === "s") battle.subCursor = 1;
-    }
+    if (gameState !== "AT_BAT") return;
+    if (e.key === "ArrowLeft") atBat.menuCursor = Math.max(0, atBat.menuCursor - 1);
+    if (e.key === "ArrowRight") atBat.menuCursor = Math.min(3, atBat.menuCursor + 1);
 });
 
 /* ==========================================================================
-   GRAPHICS RENDERING ENGINE (160x144 Native GB Canvas)
+   64-BIT RETRO 2D GRAPHICS RENDERING
    ========================================================================== */
-function drawText(txt, x, y, color = C_DARKEST) {
-    ctx.fillStyle = color;
-    ctx.font = "bold 9px monospace";
-    ctx.fillText(txt, x, y);
+
+// Draw an authentic 64-bit Baseball Batter Sprite
+function drawBaseballPlayer(x, y, dir, walking, frame) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Dynamic drop shadow
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.beginPath();
+    ctx.ellipse(12, 36, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Spiked Cleats
+    let legOffset = walking ? Math.sin(frame * 2) * 3 : 0;
+    ctx.fillStyle = "#111"; // Black cleats
+    ctx.fillRect(4, 30 + legOffset, 6, 6);
+    ctx.fillRect(14, 30 - legOffset, 6, 6);
+
+    // Baseball Pants (Pinstripe Off-White)
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(4, 18, 7, 13);
+    ctx.fillRect(13, 18, 7, 13);
+    // Navy pinstripes
+    ctx.fillStyle = "#0c2340";
+    ctx.fillRect(7, 18, 1, 13);
+    ctx.fillRect(16, 18, 1, 13);
+
+    // Belt & Buckle
+    ctx.fillStyle = "#0c2340";
+    ctx.fillRect(4, 17, 16, 2);
+    ctx.fillStyle = "#d4af37";
+    ctx.fillRect(11, 17, 2, 2);
+
+    // Jersey (Authentic team uniform)
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(3, 8, 18, 10);
+    // Pinstripes
+    ctx.fillStyle = "#0c2340";
+    ctx.fillRect(7, 8, 1, 10);
+    ctx.fillRect(12, 8, 1, 10);
+    ctx.fillRect(16, 8, 1, 10);
+
+    // Head / Facial Hair Stubble & Skin
+    ctx.fillStyle = "#dca176"; // Skin tone
+    ctx.fillRect(7, 3, 10, 7);
+    ctx.fillStyle = "#4a3319"; // Beard stubble along jaw
+    ctx.fillRect(7, 7, 10, 3);
+
+    // Batting Helmet (Navy Blue with shine highlight)
+    ctx.fillStyle = "#0c2340";
+    ctx.fillRect(6, 0, 12, 5);
+    ctx.fillStyle = "#1f4a7c"; // Earflap & crown highlight
+    ctx.fillRect(7, 1, 4, 2);
+
+    // Wooden Maple Baseball Bat
+    ctx.fillStyle = "#b4793f"; // Maple wood
+    if (dir === "down" || dir === "right") {
+        ctx.fillRect(20, 2, 3, 24);
+        ctx.fillStyle = "#1a1a1a"; // Pine tar grip
+        ctx.fillRect(20, 18, 3, 8);
+    } else {
+        ctx.fillRect(1, 2, 3, 24);
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(1, 18, 3, 8);
+    }
+
+    ctx.restore();
 }
 
-function drawWindow(x, y, w, h) {
-    ctx.fillStyle = C_LIGHTEST;
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = C_DARKEST;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+function renderOverworld() {
+    // 1. Manicured Ballpark Outfield & Infield Turf
+    ctx.fillStyle = "#2d6a4f";
+    ctx.fillRect(0, 0, 640, 480);
+
+    // Field mower pattern stripes (Classic MLB diamond aesthetic)
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    for (let c = 0; c < 640; c += 40) {
+        ctx.fillRect(c, 0, 20, 480);
+    }
+
+    // 2. Infield Clay Dirt Diamond
+    ctx.fillStyle = "#b07d4b";
+    ctx.beginPath();
+    ctx.moveTo(320, 130); // 2nd base
+    ctx.lineTo(440, 250); // 1st base
+    ctx.lineTo(320, 370); // Home plate
+    ctx.lineTo(200, 250); // 3rd base
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#8d5b32";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Grass diamond cutout inside bases
+    ctx.fillStyle = "#2d6a4f";
+    ctx.beginPath();
+    ctx.moveTo(320, 175);
+    ctx.lineTo(395, 250);
+    ctx.lineTo(320, 325);
+    ctx.lineTo(245, 250);
+    ctx.closePath();
+    ctx.fill();
+
+    // Foul lines
+    ctx.strokeStyle = "rgba(255,255,255,0.85)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(320, 370); ctx.lineTo(600, 90);  // Right foul line
+    ctx.moveTo(320, 370); ctx.lineTo(40, 90);   // Left foul line
+    ctx.stroke();
+
+    // Pitcher Mound & Rubber
+    ctx.fillStyle = "#9a6538";
+    ctx.beginPath();
+    ctx.arc(320, 250, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(315, 248, 10, 4);
+
+    // Home Plate & Batter's Boxes
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(316, 366, 8, 8); // Home plate
+    // Chalk lines for batter's box
+    ctx.strokeStyle = "#ffffff";
+    ctx.strokeRect(298, 355, 14, 28); // Left box
+    ctx.strokeRect(328, 355, 14, 28); // Right box
+
+    // Stadium Dugout Wall & Railing
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(20, 430, 600, 50);
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(20, 426, 600, 4); // Railing
+
+    // Scoreboard in Centerfield
+    ctx.fillStyle = "#090d16";
+    ctx.fillRect(210, 10, 220, 50);
+    ctx.strokeStyle = "#e3b341";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(210, 10, 220, 50);
+    ctx.fillStyle = "#e3b341";
+    ctx.font = "bold 11px monospace";
+    ctx.fillText("SCOREBOARD", 280, 24);
+    ctx.fillStyle = "#00cecb";
+    ctx.fillText(`AVG: .${player.ab > 0 ? Math.round((player.hits/player.ab)*1000) : "000"}  HR: ${player.hrs}  CALL-UP XP: ${player.progPoints}/${TIERS[player.tierIdx].targetXP}`, 220, 44);
+
+    // Render NPCs
+    for (let npc of npcs) {
+        drawBaseballPlayer(npc.x, npc.y, "down", false, 0);
+        ctx.fillStyle = "#f0f6fc";
+        ctx.font = "bold 10px sans-serif";
+        ctx.fillText(npc.name, npc.x - 10, npc.y - 4);
+    }
+
+    // Render Player
+    drawBaseballPlayer(player.x, player.y, player.dir, player.walking, player.frame);
+
+    // Interactive prompt near plate
+    if (player.x > 270 && player.x < 370 && player.y > 320 && player.y < 410) {
+        ctx.fillStyle = "rgba(0, 206, 203, 0.9)";
+        ctx.fillRect(245, 310, 150, 22);
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 10px sans-serif";
+        ctx.fillText("PRESS [A] FOR LIVE AT-BAT", 250, 325);
+    }
+
+    // Top-Left Player Profile HUD
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.fillRect(10, 10, 185, 48);
+    ctx.strokeStyle = "#00cecb";
+    ctx.strokeRect(10, 10, 185, 48);
+    ctx.fillStyle = "#00cecb";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`${player.name} (${player.position}) - ${TIERS[player.tierIdx].name}`, 18, 25);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "10px monospace";
+    ctx.fillText(`CON:${player.contact} PWR:${player.power} EYE:${player.discipline} SPD:${player.speedStat}`, 18, 42);
 }
 
-function render() {
-    ctx.fillStyle = C_LIGHTEST;
-    ctx.fillRect(0, 0, 160, 144);
+function renderAtBatScene() {
+    // 64-bit Televised Broadcast At-Bat Presentation
+    // Centerfield broadcast camera angle
+    ctx.fillStyle = "#1e3a1e";
+    ctx.fillRect(0, 0, 640, 320);
 
-    if (gameState === "OVERWORLD" || gameState === "DIALOGUE") {
-        // Camera centers on player
-        const camX = Math.floor(player.pixelX - 80 + 8);
-        const camY = Math.floor(player.pixelY - 72 + 8);
+    // Dirt circle behind plate
+    ctx.fillStyle = "#a26e3c";
+    ctx.beginPath();
+    ctx.ellipse(320, 250, 180, 70, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-        // Draw Tiles
-        for (let r = 0; r < MAP_H; r++) {
-            for (let c = 0; c < MAP_W; c++) {
-                let px = c * 16 - camX;
-                let py = r * 16 - camY;
-                if (px < -16 || px > 160 || py < -16 || py > 144) continue;
+    // Home plate & Batter Box chalk
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(314, 260, 12, 10);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(260, 225, 36, 65);
+    ctx.strokeRect(344, 225, 36, 65);
 
-                let t = OVERWORLD_MAP[r][c];
-                if (t === 0) { // Grass
-                    ctx.fillStyle = C_LIGHT;
-                    ctx.fillRect(px, py, 16, 16);
-                } else if (t === 1) { // Dirt Path
-                    ctx.fillStyle = C_LIGHTEST;
-                    ctx.fillRect(px, py, 16, 16);
-                    ctx.fillStyle = C_LIGHT;
-                    ctx.fillRect(px + 4, py + 4, 2, 2);
-                } else if (t === 2) { // Wall
-                    ctx.fillStyle = C_DARKEST;
-                    ctx.fillRect(px, py, 16, 16);
-                    ctx.fillStyle = C_DARK;
-                    ctx.fillRect(px + 2, py + 2, 12, 12);
-                } else if (t === 3) { // Wild Tall Grass
-                    ctx.fillStyle = C_DARK;
-                    ctx.fillRect(px, py, 16, 16);
-                    ctx.fillStyle = C_LIGHTEST;
-                    ctx.fillRect(px + 3, py + 2, 2, 6);
-                    ctx.fillRect(px + 9, py + 2, 2, 6);
-                } else if (t === 4) { // Mound / Gym Pad
-                    ctx.fillStyle = C_DARK;
-                    ctx.fillRect(px, py, 16, 16);
-                    ctx.fillStyle = C_LIGHTEST;
-                    ctx.fillRect(px + 4, py + 6, 8, 4);
-                } else if (t === 5) { // Roof
-                    ctx.fillStyle = C_DARK;
-                    ctx.fillRect(px, py, 16, 16);
-                }
-            }
-        }
+    // Opposing Pitcher on the Mound
+    ctx.fillStyle = "#222";
+    ctx.beginPath();
+    ctx.ellipse(320, 100, 30, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    drawBaseballPlayer(308, 64, "down", false, 0);
 
-        // Draw Player Sprite (8-bit Trainer)
-        let plPx = player.pixelX - camX;
-        let plPy = player.pixelY - camY;
+    // Batter in Left Batter's Box (Back/side 3/4 view facing pitcher)
+    drawBaseballPlayer(266, 215, "up", false, 0);
 
-        ctx.fillStyle = C_DARKEST;
-        ctx.fillRect(plPx + 4, plPy + 1, 8, 5); // Cap
-        ctx.fillStyle = C_LIGHT;
-        ctx.fillRect(plPx + 5, plPy + 6, 6, 4); // Face
-        ctx.fillStyle = C_DARK;
-        ctx.fillRect(plPx + 3, plPy + 10, 10, 5); // Shirt
+    // Ball Animation
+    if (atBat.pitchState === "PITCHING") {
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(320, 110 + (Math.random() * 120), 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-        // Dialogue Box
-        if (gameState === "DIALOGUE") {
-            drawWindow(4, 96, 152, 44);
-            let display = dialogueText.substring(0, dialogueIdx);
-            if (dialogueIdx < dialogueText.length) dialogueIdx++;
-            drawText(display.substring(0, 24), 10, 110);
-            drawText(display.substring(24, 48), 10, 122);
-            drawText(display.substring(48, 72), 10, 134);
-        }
-    } else if (gameState === "BATTLE_TRANSITION") {
-        transitionTimer++;
-        ctx.fillStyle = C_DARKEST;
-        let barH = (transitionTimer * 6);
-        ctx.fillRect(0, 0, 160, barH);
-        ctx.fillRect(0, 144 - barH, 160, barH);
-        if (transitionTimer > 24) gameState = "BATTLE";
-    } else if (gameState === "BATTLE") {
-        // --- Opponent HUD (Top Left) ---
-        drawWindow(6, 6, 88, 28);
-        drawText(`${battle.oppName}`, 10, 16);
-        drawText(`:L${battle.oppLv}`, 70, 16);
-        // HP Bar
-        ctx.fillStyle = C_DARK;
-        ctx.fillRect(10, 22, 60, 5);
-        let oppPct = Math.max(0, battle.oppHp / battle.oppMaxHp);
-        ctx.fillStyle = C_DARKEST;
-        ctx.fillRect(10, 22, Math.floor(60 * oppPct), 5);
+    // Broadcast TV HUD (Pitcher Top-Left, Count Top-Right)
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.fillRect(20, 16, 210, 48);
+    ctx.strokeStyle = "#e3b341";
+    ctx.strokeRect(20, 16, 210, 48);
+    ctx.fillStyle = "#e3b341";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`P: ${TIERS[player.tierIdx].pitcher} (${TIERS[player.tierIdx].pitchVelo})`, 28, 32);
+    // Stamina Bar
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(28, 42, 180, 8);
+    ctx.fillStyle = "#22c55e";
+    ctx.fillRect(28, 42, Math.floor(180 * (atBat.pitcherHp / 100)), 8);
 
-        // Opponent Sprite (Pitcher on rubber)
-        ctx.fillStyle = C_DARKEST;
-        ctx.fillRect(110, 18, 22, 14); // Cap & Head
-        ctx.fillStyle = C_DARK;
-        ctx.fillRect(104, 32, 34, 28); // Uniform
-        ctx.fillStyle = C_LIGHT;
-        ctx.fillRect(98, 38, 8, 8);   // Glove
+    // Balls / Strikes Dashboard
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.fillRect(510, 16, 110, 48);
+    ctx.strokeStyle = "#00cecb";
+    ctx.strokeRect(510, 16, 110, 48);
+    ctx.fillStyle = "#00cecb";
+    ctx.font = "bold 14px monospace";
+    ctx.fillText(`COUNT`, 538, 34);
+    ctx.fillStyle = "#e3b341";
+    ctx.fillText(`${atBat.balls} - ${atBat.strikes}`, 544, 52);
 
-        // --- Player HUD (Bottom Right) ---
-        drawWindow(66, 64, 88, 32);
-        drawText(`${player.name}`, 72, 74);
-        drawText(`:L${player.level}`, 130, 74);
-        // Player HP
-        ctx.fillStyle = C_DARK;
-        ctx.fillRect(72, 80, 60, 5);
-        let plPct = Math.max(0, player.hp / player.maxHp);
-        ctx.fillStyle = C_DARKEST;
-        ctx.fillRect(72, 80, Math.floor(60 * plPct), 5);
-        drawText(`HP:${player.hp}/${player.maxHp}`, 72, 92);
+    // Bottom Command Console
+    ctx.fillStyle = "#0d1117";
+    ctx.fillRect(0, 320, 640, 160);
+    ctx.strokeStyle = "#30363d";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(0, 320, 640, 160);
 
-        // Player Sprite (Back facing batter)
-        ctx.fillStyle = C_DARKEST;
-        ctx.fillRect(18, 64, 28, 34); // Back jersey
-        ctx.fillStyle = C_LIGHT;
-        ctx.fillRect(38, 48, 6, 32);  // Bat cocked up
+    // Message Log
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 13px 'Segoe UI', sans-serif";
+    ctx.fillText(atBat.logMsg, 30, 350);
 
-        // --- Bottom Command Box ---
-        drawWindow(4, 98, 152, 42);
+    // Action Menu Options
+    const menuOptions = ["Contact Swing [A]", "Power Swing", "Take Pitch [B]", "Drag Bunt"];
+    for (let i = 0; i < 4; i++) {
+        let bx = 30 + (i * 145);
+        let by = 385;
+        let isSelected = (atBat.menuCursor === i);
 
-        if (battle.phase === "TEXT") {
-            drawText(battle.logText.substring(0, 24), 10, 112);
-            drawText(battle.logText.substring(24, 50), 10, 124);
-            drawText(battle.logText.substring(50, 76), 10, 134);
-        } else if (battle.phase === "MENU") {
-            drawText("What will RED do?", 10, 114);
-            drawText((battle.cursor === 0 ? "▶" : " ") + "FIGHT", 10, 126);
-            drawText((battle.cursor === 1 ? "▶" : " ") + "TAKE", 60, 126);
-            drawText((battle.cursor === 2 ? "▶" : " ") + "BUNT", 10, 136);
-            drawText((battle.cursor === 3 ? "▶" : " ") + "RUN",  60, 136);
-            drawText(`B:${battle.balls} S:${battle.strikes}`, 110, 126);
-        } else if (battle.phase === "SUB_FIGHT") {
-            drawText((battle.subCursor === 0 ? "▶" : " ") + "CONTACT SWING", 12, 114);
-            drawText((battle.subCursor === 1 ? "▶" : " ") + "POWER BLAST", 12, 128);
-            drawText("[B] BACK", 100, 136);
-        }
+        ctx.fillStyle = isSelected ? "#00cecb" : "#21262d";
+        ctx.fillRect(bx, by, 135, 45);
+        ctx.strokeStyle = isSelected ? "#ffffff" : "#30363d";
+        ctx.lineWidth = isSelected ? 2 : 1;
+        ctx.strokeRect(bx, by, 135, 45);
+
+        ctx.fillStyle = isSelected ? "#000000" : "#ffffff";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText(menuOptions[i], bx + 12, by + 26);
     }
 }
 
+function renderDialogue() {
+    ctx.fillStyle = "rgba(13, 17, 23, 0.96)";
+    ctx.fillRect(30, 330, 580, 110);
+    ctx.strokeStyle = "#00cecb";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, 330, 580, 110);
+
+    ctx.fillStyle = "#e3b341";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText(dialogueData.speaker, 50, 355);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "13px sans-serif";
+    ctx.fillText(dialogueData.text, 50, 385);
+
+    ctx.fillStyle = "#8b949e";
+    ctx.font = "11px monospace";
+    ctx.fillText("Press [A] or [ENTER] to continue...", 420, 425);
+}
+
 /* ==========================================================================
-   GAME LOOP
+   MAIN GAME LOOP
    ========================================================================== */
 function gameLoop() {
     updateOverworld();
-    render();
+
+    ctx.clearRect(0, 0, 640, 480);
+    if (gameState === "OVERWORLD") {
+        renderOverworld();
+    } else if (gameState === "AT_BAT") {
+        renderAtBatScene();
+    } else if (gameState === "DIALOGUE") {
+        renderOverworld();
+        renderDialogue();
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
