@@ -1,356 +1,243 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Three.js FPS</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
-    body {
-      overflow: hidden;
-      background: #111;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    #crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 10px;
-      height: 10px;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 10;
-    }
-    #crosshair::before, #crosshair::after {
-      content: "";
-      position: absolute;
-      background: rgba(255, 255, 255, 0.85);
-    }
-    #crosshair::before {
-      top: 4px; left: -8px; width: 26px; height: 2px;
-    }
-    #crosshair::after {
-      top: -8px; left: 4px; width: 2px; height: 26px;
-    }
-    #hud {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      color: #fff;
-      font-size: 20px;
-      letter-spacing: 1px;
-      z-index: 10;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-    }
-    #blocker {
-      position: absolute;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      cursor: pointer;
-      z-index: 20;
-    }
-    #blocker h1 {
-      font-size: 42px;
-      margin-bottom: 12px;
-    }
-    #blocker p {
-      font-size: 16px;
-      color: #ccc;
-    }
-  </style>
-</head>
-<body>
-  <div id="crosshair"></div>
-  <div id="hud">
-    <div>SCORE: <span id="score">0</span></div>
-    <div>AMMO: <span id="ammo">30</span> / ∞ (Press R to reload)</div>
-  </div>
+import random
+import sys
+import time
 
-  <div id="blocker">
-    <h1>CLICK TO PLAY</h1>
-    <p>WASD to Move &nbsp;|&nbsp; Mouse to Aim &nbsp;|&nbsp; Left Click to Shoot &nbsp;|&nbsp; R to Reload</p>
-  </div>
+TIERS = [
+    {"name": "Single-A", "threshold": 120, "pitcher_difficulty": 45},
+    {"name": "Double-A", "threshold": 260, "pitcher_difficulty": 60},
+    {"name": "Triple-A", "threshold": 420, "pitcher_difficulty": 75},
+    {"name": "MLB Majors", "threshold": 650, "pitcher_difficulty": 88},
+    {"name": "MLB All-Star", "threshold": 9999, "pitcher_difficulty": 95},
+]
 
-  <!-- Include Three.js and PointerLockControls via CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+class Player:
+    def __init__(self, name, position):
+        self.name = name
+        self.position = position
+        self.contact = 45
+        self.power = 40
+        self.discipline = 40
+        self.speed = 50
+        
+        self.energy = 100
+        self.hype = 10
+        self.career_hits = 0
+        self.career_hrs = 0
+        self.career_rbi = 0
+        self.at_bats = 0
+        self.overall_points = 0
+        self.tier_idx = 0
 
-  <script>
-    // --- Core Scene Setup ---
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a202c);
-    scene.fog = new THREE.Fog(0x1a202c, 20, 80);
+    @property
+    def current_tier(self):
+        return TIERS[self.tier_idx]["name"]
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.body.appendChild(renderer.domElement);
+    @property
+    def batting_avg(self):
+        return (self.career_hits / self.at_bats) if self.at_bats > 0 else 0.000
 
-    // --- Lighting ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
-    scene.add(ambientLight);
+    def check_promotion(self):
+        if self.tier_idx < len(TIERS) - 1:
+            req = TIERS[self.tier_idx]["threshold"]
+            if self.overall_points >= req:
+                self.tier_idx += 1
+                print(f"\n========================================================")
+                print(f"🚨 CALL-UP ALERT! You have been promoted to {self.current_tier}!")
+                print(f"========================================================\n")
+                return True
+        return False
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-    dirLight.position.set(20, 40, 20);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
-    scene.add(dirLight);
+def show_status(p):
+    print("\n" + "=" * 45)
+    print(f"PLAYER: {p.name} | POS: {p.position} | LEVEL: {p.current_tier}")
+    print(f"ENERGY: {p.energy}/100 | HYPE: {p.hype} | XP/PROG: {p.overall_points}")
+    print(f"STATS: Contact: {p.contact} | Power: {p.power} | Eye: {p.discipline} | Speed: {p.speed}")
+    print(f"RECORD: {p.career_hits}-{p.at_bats} (. {int(p.batting_avg * 1000):03d}) | HR: {p.career_hrs} | RBI: {p.career_rbi}")
+    print("=" * 45)
 
-    // --- Environment: Floor and Boundary Walls ---
-    const floorGeo = new THREE.PlaneGeometry(100, 100);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.8 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
+def train(p):
+    if p.energy < 25:
+        print("\nYou're too exhausted to train. Rest first to avoid injury!")
+        return
 
-    const grid = new THREE.GridHelper(100, 50, 0x4a5568, 0x374151);
-    grid.position.y = 0.01;
-    scene.add(grid);
+    print("\nSelect Training Focus:")
+    print("1. Cage Work (+Contact, +XP)")
+    print("2. Weight Room (+Power, -Speed slightly)")
+    print("3. Video Study (+Discipline, +XP)")
+    print("4. Sprint Drills (+Speed)")
+    
+    choice = input("> ").strip()
+    p.energy -= 25
 
-    // Obstacles / Cover
-    const boxGeo = new THREE.BoxGeometry(3, 3, 3);
-    const boxMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.6 });
-    for (let i = 0; i < 16; i++) {
-      const box = new THREE.Mesh(boxGeo, boxMat);
-      box.position.x = (Math.random() - 0.5) * 60;
-      box.position.z = (Math.random() - 0.5) * 60;
-      box.position.y = 1.5;
-      box.castShadow = true;
-      box.receiveShadow = true;
-      scene.add(box);
-    }
+    if choice == "1":
+        gain = random.randint(2, 4)
+        p.contact += gain
+        p.overall_points += 15
+        print(f"\nLocked in your mechanics. Contact increased by +{gain}!")
+    elif choice == "2":
+        gain = random.randint(2, 5)
+        p.power += gain
+        if random.random() < 0.25 and p.speed > 35:
+            p.speed -= 1
+            print(f"\nCrushing weights! Power +{gain}, but lost 1 Speed.")
+        else:
+            print(f"\nCrushing weights! Power +{gain}!")
+        p.overall_points += 15
+    elif choice == "3":
+        gain = random.randint(3, 5)
+        p.discipline += gain
+        p.overall_points += 20
+        print(f"\nStudying release points and pitch shapes. Discipline +{gain}!")
+    elif choice == "4":
+        gain = random.randint(2, 4)
+        p.speed += gain
+        p.overall_points += 10
+        print(f"\nWorking on first-step burst. Speed +{gain}!")
+    else:
+        print("\nIndecision wasted valuable practice time.")
 
-    // --- Gun Model Attached to Camera ---
-    const gunGroup = new THREE.Group();
-    const gunBodyGeo = new THREE.BoxGeometry(0.12, 0.15, 0.6);
-    const gunMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
-    const gunBody = new THREE.Mesh(gunBodyGeo, gunMat);
+def rest(p):
+    recovered = random.randint(35, 50)
+    p.energy = min(100, p.energy + recovered)
+    print(f"\nYou hit the ice bath and get 9 hours of sleep. Energy recovered to {p.energy}%.")
 
-    const barrelGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.4);
-    const barrel = new THREE.Mesh(barrelGeo, gunMat);
-    barrel.rotation.x = Math.PI / 2;
-    barrel.position.set(0, 0.04, -0.35);
+def simulate_at_bat(p):
+    diff = TIERS[p.tier_idx]["pitcher_difficulty"]
+    count_balls = 0
+    count_strikes = 0
 
-    gunGroup.add(gunBody);
-    gunGroup.add(barrel);
-    gunGroup.position.set(0.25, -0.22, -0.5);
-    camera.add(gunGroup);
-    scene.add(camera);
+    print(f"\n--- Stepping into the box vs. {p.current_tier} Pitching (OVR {diff}) ---")
 
-    // --- Controls & Pointer Lock ---
-    const controls = new THREE.PointerLockControls(camera, document.body);
-    const blocker = document.getElementById('blocker');
+    while count_strikes < 3 and count_balls < 4:
+        pitch_in_zone = random.random() < 0.60
+        pitch_quality = random.randint(diff - 15, diff + 15)
 
-    blocker.addEventListener('click', () => controls.lock());
-    controls.addEventListener('lock', () => blocker.style.display = 'none');
-    controls.addEventListener('unlock', () => blocker.style.display = 'flex');
+        print(f"\nCount: {count_balls}-{count_strikes}")
+        print("1. Contact Swing (High bat-to-ball, lower power)")
+        print("2. Power Swing (High exit velo, lower hit chance)")
+        print("3. Take Pitch (Test your discipline)")
+        
+        approach = input("Your approach > ").strip()
 
-    camera.position.set(0, 1.7, 0); // Average eye level
+        if approach == "3":
+            # Discipline roll vs Pitcher quality
+            if not pitch_in_zone:
+                if (p.discipline + random.randint(1, 20)) > (diff * 0.7):
+                    print(">> Good eye. Ball outside.")
+                    count_balls += 1
+                else:
+                    print(">> Chased out of the zone! Strike!")
+                    count_strikes += 1
+            else:
+                print(">> Called strike on the corner.")
+                count_strikes += 1
 
-    const moveState = { forward: false, backward: false, left: false, right: false };
-    const velocity = new THREE.Vector3();
-    const direction = new THREE.Vector3();
-    let prevTime = performance.now();
+        elif approach in ["1", "2"]:
+            is_power = (approach == "2")
+            stat_mod = p.power if is_power else p.contact
+            penalty = 20 if is_power else 5
+            
+            # Hit check
+            roll = stat_mod + random.randint(1, 40) - penalty
+            if not pitch_in_zone:
+                roll -= 25  # Hitting balls outside zone is punishing
 
-    window.addEventListener('keydown', (e) => {
-      switch (e.code) {
-        case 'KeyW': moveState.forward = true; break;
-        case 'KeyS': moveState.backward = true; break;
-        case 'KeyA': moveState.left = true; break;
-        case 'KeyD': moveState.right = true; break;
-        case 'KeyR': reload(); break;
-      }
-    });
+            if roll < pitch_quality:
+                print(">> Whiff! Swing and a miss.")
+                count_strikes += 1
+            else:
+                # Ball put in play
+                p.at_bats += 1
+                outcome_roll = roll - pitch_quality + random.randint(1, 30)
 
-    window.addEventListener('keyup', (e) => {
-      switch (e.code) {
-        case 'KeyW': moveState.forward = false; break;
-        case 'KeyS': moveState.backward = false; break;
-        case 'KeyA': moveState.left = false; break;
-        case 'KeyD': moveState.right = false; break;
-      }
-    });
+                if is_power and outcome_roll > 35:
+                    print("\n🔥 CRUSHED! DEEP TO CENTER... GONE! HOME RUN!")
+                    p.career_hits += 1
+                    p.career_hrs += 1
+                    p.career_rbi += random.randint(1, 3)
+                    p.overall_points += 45
+                    p.hype += 15
+                elif outcome_roll > 20:
+                    print("\n⚾ Shot through the gap for an extra-base hit!")
+                    p.career_hits += 1
+                    p.career_rbi += random.randint(0, 2)
+                    p.overall_points += 25
+                    p.hype += 8
+                elif outcome_roll >= 5:
+                    print("\n⚾ Sharp grounder past the infielder for a single.")
+                    p.career_hits += 1
+                    p.career_rbi += random.randint(0, 1)
+                    p.overall_points += 15
+                    p.hype += 4
+                else:
+                    print("\nGroundout to short. Routine play.")
+                return
+        else:
+            print("Frozen looking! Strike called.")
+            count_strikes += 1
 
-    // --- Targets & Game Logic ---
-    let score = 0;
-    let ammo = 30;
-    const maxAmmo = 30;
-    let isReloading = false;
-    const targets = [];
-    const targetGeo = new THREE.SphereGeometry(1, 16, 16);
+    p.at_bats += 1
+    if count_balls == 4:
+        print("\n>> Ball four! Drew the walk.")
+        p.overall_points += 10
+        p.hype += 2
+    else:
+        print("\n>> Strike three called. Take a seat.")
+        p.hype = max(0, p.hype - 3)
 
-    function spawnTarget() {
-      const targetMat = new THREE.MeshStandardMaterial({
-        color: 0xe53e3e,
-        roughness: 0.4,
-        emissive: 0x9b2c2c,
-        emissiveIntensity: 0.3
-      });
-      const target = new THREE.Mesh(targetGeo, targetMat);
-      target.position.x = (Math.random() - 0.5) * 50;
-      target.position.y = 1.5 + Math.random() * 3;
-      target.position.z = (Math.random() - 0.5) * 50;
-      target.castShadow = true;
+def play_game(p):
+    if p.energy < 20:
+        print("\nManager sits you today due to dead legs. Rest up.")
+        return
 
-      // Ensure target doesn't spawn right on top of the player
-      if (target.position.distanceTo(camera.position) < 8) {
-        target.position.z += 12;
-      }
+    p.energy -= 20
+    print(f"\nGame Day under the lights in {p.current_tier}!")
+    
+    # 3 plate appearances per simulated game day
+    for ab in range(1, 4):
+        print(f"\n[ Plate Appearance {ab}/3 ]")
+        simulate_at_bat(p)
+        time.sleep(0.4)
 
-      scene.add(target);
-      targets.push(target);
-    }
+    p.check_promotion()
 
-    for (let i = 0; i < 8; i++) spawnTarget();
+def main():
+    print("=" * 60)
+    print("        ROAD TO COOPERSTOWN: AN MLB JOURNEY        ")
+    print("=" * 60)
+    name = input("Enter your prospect's name: ").strip() or "Kid Carter"
+    pos = input("Enter primary position (e.g., SS, OF, 3B): ").strip().upper() or "SS"
+    
+    player = Player(name, pos)
+    print(f"\nDrafted in the 4th Round by the organization. Assigned to Single-A ball.")
 
-    // --- Shooting Mechanism (Raycasting) ---
-    const raycaster = new THREE.Raycaster();
-    const centerScreen = new THREE.Vector2(0, 0);
+    while True:
+        if player.tier_idx >= len(TIERS) - 1 and player.overall_points >= 900:
+            print("\n" + "*" * 60)
+            print(f"CONGRATULATIONS! {player.name} is an MLB All-Star and franchise icon!")
+            print("*" * 60)
+            show_status(player)
+            sys.exit()
 
-    function shoot() {
-      if (!controls.isLocked || isReloading || ammo <= 0) return;
+        show_status(player)
+        print("\nACTIONS:")
+        print("1. Play Game Day (Cost: 20 Energy)")
+        print("2. Facility Training (Cost: 25 Energy)")
+        print("3. Rest & Recovery")
+        print("4. Retire / Exit")
 
-      ammo--;
-      document.getElementById('ammo').innerText = ammo;
+        act = input("\nChoose action > ").strip()
+        if act == "1":
+            play_game(player)
+        elif act == "2":
+            train(player)
+        elif act == "3":
+            rest(player)
+        elif act == "4":
+            print(f"\n{player.name} hanging up the spikes. Thanks for playing!")
+            break
+        else:
+            print("Invalid command.")
 
-      // Gun recoil animation
-      gunGroup.position.z += 0.08;
-      setTimeout(() => { gunGroup.position.z -= 0.08; }, 60);
-
-      raycaster.setFromCamera(centerScreen, camera);
-      const intersects = raycaster.intersectObjects(targets);
-
-      if (intersects.length > 0) {
-        const hitTarget = intersects[0].object;
-        createHitExplosion(hitTarget.position);
-
-        scene.remove(hitTarget);
-        const index = targets.indexOf(hitTarget);
-        if (index > -1) targets.splice(index, 1);
-
-        score += 100;
-        document.getElementById('score').innerText = score;
-        spawnTarget();
-      }
-    }
-
-    function reload() {
-      if (isReloading || ammo === maxAmmo) return;
-      isReloading = true;
-      document.getElementById('ammo').innerText = 'RELOADING...';
-      setTimeout(() => {
-        ammo = maxAmmo;
-        document.getElementById('ammo').innerText = ammo;
-        isReloading = false;
-      }, 1200);
-    }
-
-    window.addEventListener('mousedown', (e) => {
-      if (e.button === 0) shoot();
-    });
-
-    // --- Particle Effects on Hit ---
-    const particles = [];
-    const pGeo = new THREE.BufferGeometry();
-    const pCount = 20;
-    const pPositions = new Float32Array(pCount * 3);
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-
-    function createHitExplosion(pos) {
-      const pMat = new THREE.PointsMaterial({ color: 0xff8787, size: 0.15 });
-      const pMesh = new THREE.Points(pGeo.clone(), pMat);
-      pMesh.position.copy(pos);
-
-      const velocities = [];
-      for (let i = 0; i < pCount; i++) {
-        velocities.push(new THREE.Vector3(
-          (Math.random() - 0.5) * 6,
-          (Math.random() - 0.5) * 6,
-          (Math.random() - 0.5) * 6
-        ));
-      }
-
-      scene.add(pMesh);
-      particles.push({ mesh: pMesh, velocities: velocities, life: 0.4 });
-    }
-
-    // --- Window Resize Handling ---
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // --- Main Game Loop ---
-    function animate() {
-      requestAnimationFrame(animate);
-
-      const time = performance.now();
-      const delta = (time - prevTime) / 1000;
-      prevTime = time;
-
-      if (controls.isLocked) {
-        // Friction / damping
-        velocity.x -= velocity.x * 10.0 * delta;
-        velocity.z -= velocity.z * 10.0 * delta;
-
-        direction.z = Number(moveState.forward) - Number(moveState.backward);
-        direction.x = Number(moveState.right) - Number(moveState.left);
-        direction.normalize();
-
-        const speed = 60.0;
-        if (moveState.forward || moveState.backward) velocity.z -= direction.z * speed * delta;
-        if (moveState.left || moveState.right) velocity.x -= direction.x * speed * delta;
-
-        controls.moveRight(-velocity.x * delta);
-        controls.moveForward(-velocity.z * delta);
-
-        // Keep player locked inside arena bounds
-        camera.position.x = Math.max(-45, Math.min(45, camera.position.x));
-        camera.position.z = Math.max(-45, Math.min(45, camera.position.z));
-      }
-
-      // Update particle decay
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.life -= delta;
-        const positions = p.mesh.geometry.attributes.position.array;
-        for (let j = 0; j < pCount; j++) {
-          positions[j * 3] += p.velocities[j].x * delta;
-          positions[j * 3 + 1] += p.velocities[j].y * delta;
-          positions[j * 3 + 2] += p.velocities[j].z * delta;
-        }
-        p.mesh.geometry.attributes.position.needsUpdate = true;
-
-        if (p.life <= 0) {
-          scene.remove(p.mesh);
-          particles.splice(i, 1);
-        }
-      }
-
-      // Animate floating targets
-      targets.forEach((target, i) => {
-        target.position.y += Math.sin(time * 0.003 + i) * 0.005;
-      });
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
-  </script>
-</body>
-</html>
+if __name__ == "__main__":
+    main()
