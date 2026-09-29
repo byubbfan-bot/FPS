@@ -1,6 +1,12 @@
+"""
+Road to Cooperstown: An MLB Journey RPG
+A text-based career RPG tracking a prospect from the draft to MLB stardom.
+"""
+
 import random
 import sys
 import time
+
 
 TIERS = [
     {"name": "Single-A", "threshold": 120, "pitcher_difficulty": 45},
@@ -10,15 +16,16 @@ TIERS = [
     {"name": "MLB All-Star", "threshold": 9999, "pitcher_difficulty": 95},
 ]
 
+
 class Player:
-    def __init__(self, name, position):
+    def __init__(self, name: str, position: str):
         self.name = name
         self.position = position
         self.contact = 45
         self.power = 40
         self.discipline = 40
         self.speed = 50
-        
+
         self.energy = 100
         self.hype = 10
         self.career_hits = 0
@@ -29,43 +36,46 @@ class Player:
         self.tier_idx = 0
 
     @property
-    def current_tier(self):
+    def current_tier(self) -> str:
         return TIERS[self.tier_idx]["name"]
 
     @property
-    def batting_avg(self):
+    def batting_avg(self) -> float:
         return (self.career_hits / self.at_bats) if self.at_bats > 0 else 0.000
 
-    def check_promotion(self):
+    def check_promotion(self) -> bool:
         if self.tier_idx < len(TIERS) - 1:
             req = TIERS[self.tier_idx]["threshold"]
             if self.overall_points >= req:
                 self.tier_idx += 1
-                print(f"\n========================================================")
+                print("\n" + "=" * 56)
                 print(f"🚨 CALL-UP ALERT! You have been promoted to {self.current_tier}!")
-                print(f"========================================================\n")
+                print("=" * 56 + "\n")
                 return True
         return False
 
-def show_status(p):
-    print("\n" + "=" * 45)
-    print(f"PLAYER: {p.name} | POS: {p.position} | LEVEL: {p.current_tier}")
-    print(f"ENERGY: {p.energy}/100 | HYPE: {p.hype} | XP/PROG: {p.overall_points}")
-    print(f"STATS: Contact: {p.contact} | Power: {p.power} | Eye: {p.discipline} | Speed: {p.speed}")
-    print(f"RECORD: {p.career_hits}-{p.at_bats} (. {int(p.batting_avg * 1000):03d}) | HR: {p.career_hrs} | RBI: {p.career_rbi}")
-    print("=" * 45)
 
-def train(p):
+def show_status(p: Player) -> None:
+    avg_str = f".{int(round(p.batting_avg * 1000)):03d}" if p.at_bats > 0 else ".000"
+    print("\n" + "=" * 50)
+    print(f"PLAYER: {p.name} | POS: {p.position} | LEVEL: {p.current_tier}")
+    print(f"ENERGY: {p.energy}/100 | HYPE: {p.hype} | PROGRESS PTS: {p.overall_points}")
+    print(f"STATS:  Contact: {p.contact} | Power: {p.power} | Eye: {p.discipline} | Speed: {p.speed}")
+    print(f"RECORD: {p.career_hits} H / {p.at_bats} AB ({avg_str}) | HR: {p.career_hrs} | RBI: {p.career_rbi}")
+    print("=" * 50)
+
+
+def train(p: Player) -> None:
     if p.energy < 25:
-        print("\nYou're too exhausted to train. Rest first to avoid injury!")
+        print("\nYou're exhausted. Rest first to avoid injury!")
         return
 
     print("\nSelect Training Focus:")
     print("1. Cage Work (+Contact, +XP)")
-    print("2. Weight Room (+Power, -Speed slightly)")
+    print("2. Weight Room (+Power, -Speed risk)")
     print("3. Video Study (+Discipline, +XP)")
     print("4. Sprint Drills (+Speed)")
-    
+
     choice = input("> ").strip()
     p.energy -= 25
 
@@ -73,104 +83,100 @@ def train(p):
         gain = random.randint(2, 4)
         p.contact += gain
         p.overall_points += 15
-        print(f"\nLocked in your mechanics. Contact increased by +{gain}!")
+        print(f"\nLocked in mechanics. Contact increased by +{gain}!")
     elif choice == "2":
         gain = random.randint(2, 5)
         p.power += gain
         if random.random() < 0.25 and p.speed > 35:
             p.speed -= 1
-            print(f"\nCrushing weights! Power +{gain}, but lost 1 Speed.")
+            print(f"\nHeavy sets finished. Power +{gain}, but lost 1 Speed to mass.")
         else:
-            print(f"\nCrushing weights! Power +{gain}!")
+            print(f"\nHeavy sets finished. Power +{gain}!")
         p.overall_points += 15
     elif choice == "3":
         gain = random.randint(3, 5)
         p.discipline += gain
         p.overall_points += 20
-        print(f"\nStudying release points and pitch shapes. Discipline +{gain}!")
+        print(f"\nStudied spin rates and tunnels. Discipline +{gain}!")
     elif choice == "4":
         gain = random.randint(2, 4)
         p.speed += gain
         p.overall_points += 10
-        print(f"\nWorking on first-step burst. Speed +{gain}!")
+        print(f"\nExplosive ladder work. Speed +{gain}!")
     else:
-        print("\nIndecision wasted valuable practice time.")
+        print("\nIndecision wasted the session. Energy spent without gains.")
 
-def rest(p):
+
+def rest(p: Player) -> None:
     recovered = random.randint(35, 50)
     p.energy = min(100, p.energy + recovered)
-    print(f"\nYou hit the ice bath and get 9 hours of sleep. Energy recovered to {p.energy}%.")
+    print(f"\nIce bath and full sleep cycle completed. Energy restored to {p.energy}%.")
 
-def simulate_at_bat(p):
+
+def simulate_at_bat(p: Player) -> None:
     diff = TIERS[p.tier_idx]["pitcher_difficulty"]
     count_balls = 0
     count_strikes = 0
 
-    print(f"\n--- Stepping into the box vs. {p.current_tier} Pitching (OVR {diff}) ---")
+    print(f"\n--- Stepping in vs. {p.current_tier} Pitching (OVR {diff}) ---")
 
     while count_strikes < 3 and count_balls < 4:
         pitch_in_zone = random.random() < 0.60
-        pitch_quality = random.randint(diff - 15, diff + 15)
+        pitch_quality = random.randint(diff - 12, diff + 12)
 
-        print(f"\nCount: {count_balls}-{count_strikes}")
-        print("1. Contact Swing (High bat-to-ball, lower power)")
-        print("2. Power Swing (High exit velo, lower hit chance)")
-        print("3. Take Pitch (Test your discipline)")
-        
-        approach = input("Your approach > ").strip()
+        print(f"Count: {count_balls}-{count_strikes}")
+        print("1. Contact Swing | 2. Power Swing | 3. Take Pitch")
+        approach = input("Approach > ").strip()
 
         if approach == "3":
-            # Discipline roll vs Pitcher quality
             if not pitch_in_zone:
-                if (p.discipline + random.randint(1, 20)) > (diff * 0.7):
-                    print(">> Good eye. Ball outside.")
+                if (p.discipline + random.randint(1, 25)) > (diff * 0.72):
+                    print(">> Good take outside. Ball.")
                     count_balls += 1
                 else:
-                    print(">> Chased out of the zone! Strike!")
+                    print(">> Chased out of the zone! Strike.")
                     count_strikes += 1
             else:
-                print(">> Called strike on the corner.")
+                print(">> Called strike on the black.")
                 count_strikes += 1
 
         elif approach in ["1", "2"]:
             is_power = (approach == "2")
             stat_mod = p.power if is_power else p.contact
-            penalty = 20 if is_power else 5
-            
-            # Hit check
+            penalty = 18 if is_power else 5
+
             roll = stat_mod + random.randint(1, 40) - penalty
             if not pitch_in_zone:
-                roll -= 25  # Hitting balls outside zone is punishing
+                roll -= 22
 
             if roll < pitch_quality:
-                print(">> Whiff! Swing and a miss.")
+                print(">> Swing and a miss!")
                 count_strikes += 1
             else:
-                # Ball put in play
                 p.at_bats += 1
                 outcome_roll = roll - pitch_quality + random.randint(1, 30)
 
-                if is_power and outcome_roll > 35:
-                    print("\n🔥 CRUSHED! DEEP TO CENTER... GONE! HOME RUN!")
+                if is_power and outcome_roll > 32:
+                    print("\n🔥 CRUSHED TO THE UPPER DECK! HOME RUN!")
                     p.career_hits += 1
                     p.career_hrs += 1
                     p.career_rbi += random.randint(1, 3)
                     p.overall_points += 45
                     p.hype += 15
-                elif outcome_roll > 20:
-                    print("\n⚾ Shot through the gap for an extra-base hit!")
+                elif outcome_roll > 18:
+                    print("\n⚾ Driven into the gap for an extra-base hit!")
                     p.career_hits += 1
                     p.career_rbi += random.randint(0, 2)
                     p.overall_points += 25
                     p.hype += 8
-                elif outcome_roll >= 5:
-                    print("\n⚾ Sharp grounder past the infielder for a single.")
+                elif outcome_roll >= 4:
+                    print("\n⚾ Hard grounder through the infield for a single.")
                     p.career_hits += 1
                     p.career_rbi += random.randint(0, 1)
                     p.overall_points += 15
                     p.hype += 4
                 else:
-                    print("\nGroundout to short. Routine play.")
+                    print("\nSoft grounder to short. Thrown out at first.")
                 return
         else:
             print("Frozen looking! Strike called.")
@@ -178,51 +184,52 @@ def simulate_at_bat(p):
 
     p.at_bats += 1
     if count_balls == 4:
-        print("\n>> Ball four! Drew the walk.")
+        print("\n>> Ball four! Walk drawn.")
         p.overall_points += 10
         p.hype += 2
     else:
-        print("\n>> Strike three called. Take a seat.")
+        print("\n>> Strike three. Down on strikes.")
         p.hype = max(0, p.hype - 3)
 
-def play_game(p):
+
+def play_game(p: Player) -> None:
     if p.energy < 20:
-        print("\nManager sits you today due to dead legs. Rest up.")
+        print("\nManager benches you due to fatigue. Take a rest day.")
         return
 
     p.energy -= 20
     print(f"\nGame Day under the lights in {p.current_tier}!")
-    
-    # 3 plate appearances per simulated game day
+
     for ab in range(1, 4):
         print(f"\n[ Plate Appearance {ab}/3 ]")
         simulate_at_bat(p)
-        time.sleep(0.4)
+        time.sleep(0.3)
 
     p.check_promotion()
 
-def main():
+
+def main() -> None:
     print("=" * 60)
     print("        ROAD TO COOPERSTOWN: AN MLB JOURNEY        ")
     print("=" * 60)
-    name = input("Enter your prospect's name: ").strip() or "Kid Carter"
-    pos = input("Enter primary position (e.g., SS, OF, 3B): ").strip().upper() or "SS"
-    
+    name = input("Enter prospect name (Default: Kid Carter): ").strip() or "Kid Carter"
+    pos = input("Enter position (Default: SS): ").strip().upper() or "SS"
+
     player = Player(name, pos)
-    print(f"\nDrafted in the 4th Round by the organization. Assigned to Single-A ball.")
+    print(f"\nSelected in the MLB Draft! Assigned to Single-A ball.")
 
     while True:
         if player.tier_idx >= len(TIERS) - 1 and player.overall_points >= 900:
             print("\n" + "*" * 60)
-            print(f"CONGRATULATIONS! {player.name} is an MLB All-Star and franchise icon!")
+            print(f"CONGRATULATIONS! {player.name} is an MLB All-Star and Hall-of-Famer!")
             print("*" * 60)
             show_status(player)
-            sys.exit()
+            sys.exit(0)
 
         show_status(player)
         print("\nACTIONS:")
-        print("1. Play Game Day (Cost: 20 Energy)")
-        print("2. Facility Training (Cost: 25 Energy)")
+        print("1. Play Game Day (-20 Energy)")
+        print("2. Facility Training (-25 Energy)")
         print("3. Rest & Recovery")
         print("4. Retire / Exit")
 
@@ -234,10 +241,11 @@ def main():
         elif act == "3":
             rest(player)
         elif act == "4":
-            print(f"\n{player.name} hanging up the spikes. Thanks for playing!")
+            print(f"\n{player.name} has hung up the spikes. Final stats recorded.")
             break
         else:
-            print("Invalid command.")
+            print("Invalid input. Select 1, 2, 3, or 4.")
+
 
 if __name__ == "__main__":
     main()
