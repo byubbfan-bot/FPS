@@ -16,33 +16,85 @@ public class Main {
     }
 
     static final Tier[] TIERS = {
-        new Tier("Single-A", 120, 45),
-        new Tier("Double-A", 260, 60),
-        new Tier("Triple-A", 420, 75),
-        new Tier("MLB Majors", 650, 88),
-        new Tier("MLB All-Star", 9999, 95)
+        new Tier("Rookie Ball / Single-A", 120, 45),
+        new Tier("High-A Ball", 240, 58),
+        new Tier("Double-A (Prospect Central)", 400, 70),
+        new Tier("Triple-A (Taxi Squad)", 600, 82),
+        new Tier("The Show: Major Leagues", 900, 92),
+        new Tier("MLB All-Star & Legend", 9999, 98)
     };
 
     static class Player {
         String name;
         String position;
-        int contact = 45;
-        int power = 40;
-        int discipline = 40;
-        int speed = 50;
+        String draftStory;
+        int draftRound;
 
+        // Ratings (20-80 Scouting Scale)
+        int contact;
+        int power;
+        int discipline;
+        int speed;
+        int fielding;
+
+        // Career / Lifecycle
         int energy = 100;
-        int hype = 10;
-        int careerHits = 0;
-        int careerHrs = 0;
-        int careerRbi = 0;
-        int atBats = 0;
+        int hype = 15;
+        int bankroll = 5000;
         int overallPoints = 0;
         int tierIdx = 0;
 
-        Player(String name, String position) {
+        // Stats
+        int atBats = 0;
+        int careerHits = 0;
+        int careerHrs = 0;
+        int careerRbi = 0;
+        int careerWalks = 0;
+        int defensiveStops = 0;
+
+        Player(String name, String position, int archetype) {
             this.name = name;
             this.position = position;
+            applyArchetype(archetype);
+        }
+
+        private void applyArchetype(int choice) {
+            switch (choice) {
+                case 1:
+                    this.draftStory = "D1 College Slugger (1st Round Pick)";
+                    this.draftRound = 1;
+                    this.contact = 50;
+                    this.power = 65;
+                    this.discipline = 45;
+                    this.speed = 38;
+                    this.fielding = 45;
+                    this.bankroll = 150000;
+                    this.hype = 40;
+                    break;
+                case 2:
+                    this.draftStory = "High School Phenom (Tools & Speed)";
+                    this.draftRound = 2;
+                    this.contact = 42;
+                    this.power = 48;
+                    this.discipline = 38;
+                    this.speed = 70;
+                    this.fielding = 55;
+                    this.bankroll = 85000;
+                    this.hype = 30;
+                    break;
+                case 3:
+                default:
+                    this.draftStory = "Undrafted Senior Sign / Late-Round Sleeper";
+                    this.draftRound = 18;
+                    this.contact = 55;
+                    this.power = 38;
+                    this.discipline = 60;
+                    this.speed = 48;
+                    this.fielding = 60;
+                    this.bankroll = 10000;
+                    this.hype = 10;
+                    break;
+            }
         }
 
         String getCurrentTier() {
@@ -58,9 +110,12 @@ public class Main {
                 int req = TIERS[this.tierIdx].threshold;
                 if (this.overallPoints >= req) {
                     this.tierIdx++;
-                    System.out.println("\n========================================================");
-                    System.out.println("🚨 CALL-UP ALERT! You have been promoted to " + getCurrentTier() + "!");
-                    System.out.println("========================================================\n");
+                    printDivider();
+                    System.out.println("🚨 FRONT OFFICE CALL-UP!");
+                    System.out.println("The GM called your hotel room. Pack your bags for: " + getCurrentTier() + "!");
+                    printDivider();
+                    this.hype += 15;
+                    this.energy = Math.min(100, this.energy + 20);
                     return true;
                 }
             }
@@ -72,38 +127,52 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        System.out.println("============================================================");
-        System.out.println("            ROAD TO COOPERSTOWN: AN MLB JOURNEY             ");
-        System.out.println("============================================================");
+        printDivider();
+        System.out.println("       ROAD TO COOPERSTOWN: AN MLB CAREER RPG       ");
+        printDivider();
 
-        System.out.print("Enter your prospect's name (Default: Kid Carter): ");
+        System.out.print("Enter prospect name (Default: Marcus Vance): ");
         String name = scanner.nextLine().trim();
-        if (name.isEmpty()) name = "Kid Carter";
+        if (name.isEmpty()) name = "Marcus Vance";
 
-        System.out.print("Enter position (e.g., SS, OF, 3B - Default: SS): ");
+        System.out.print("Enter position (e.g., SS, CF, 3B, 2B - Default: SS): ");
         String pos = scanner.nextLine().trim().toUpperCase();
         if (pos.isEmpty()) pos = "SS";
 
-        Player player = new Player(name, pos);
-        System.out.println("\nDrafted in the MLB Draft! Assigned to Single-A ball.");
+        System.out.println("\nSelect your Draft Background:");
+        System.out.println("1. College Power Hitter (High Power/Hype, High Expectations)");
+        System.out.println("2. 5-Tool High School Phenom (Elite Speed & Upside, Raw Eye)");
+        System.out.println("3. Grinder / Defensive Specialist (High Contact/Eye/Glove, Low Hype)");
+        System.out.print("Background > ");
+        String bgChoice = scanner.nextLine().trim();
+        int arch = 3;
+        if (bgChoice.equals("1")) arch = 1;
+        else if (bgChoice.equals("2")) arch = 2;
+
+        Player player = new Player(name, pos, arch);
+
+        System.out.println("\n[DRAFT DAY RESULT]");
+        System.out.println("With the selection, the franchise drafts " + player.name + " (" + player.draftStory + ")!");
+        System.out.println("Signing Bonus Deposited: $" + String.format("%,d", player.bankroll));
 
         boolean running = true;
         while (running) {
-            if (player.tierIdx >= TIERS.length - 1 && player.overallPoints >= 900) {
+            if (player.tierIdx >= TIERS.length - 1 && player.overallPoints >= 1200) {
                 System.out.println("\n************************************************************");
-                System.out.println("CONGRATULATIONS! " + player.name + " is an MLB All-Star and Legend!");
+                System.out.println("HALL OF FAME INDUCTION! " + player.name + " is a Cooperstown Legend!");
                 System.out.println("************************************************************");
                 showStatus(player);
                 break;
             }
 
             showStatus(player);
-            System.out.println("\nACTIONS:");
-            System.out.println("1. Play Game Day (-20 Energy)");
-            System.out.println("2. Facility Training (-25 Energy)");
-            System.out.println("3. Rest & Recovery");
-            System.out.println("4. Retire / Exit");
-            System.out.print("\nChoose action > ");
+            System.out.println("\nCAREER ACTIONS:");
+            System.out.println("1. Play Series Game (-20 Energy)");
+            System.out.println("2. Target Training (-25 Energy)");
+            System.out.println("3. Club Life / Off-Field Decision (-10 Energy)");
+            System.out.println("4. Full Recovery (Rest & Ice Bath)");
+            System.out.println("5. Retire");
+            System.out.print("\nCommand > ");
 
             String choice = scanner.nextLine().trim();
             switch (choice) {
@@ -114,41 +183,49 @@ public class Main {
                     train(player);
                     break;
                 case "3":
-                    rest(player);
+                    offFieldEvent(player);
                     break;
                 case "4":
-                    System.out.println("\n" + player.name + " hung up the spikes. Thanks for playing!");
+                    rest(player);
+                    break;
+                case "5":
+                    System.out.println("\n" + player.name + " voluntarily retired to the broadcast booth.");
                     running = false;
                     break;
                 default:
-                    System.out.println("Invalid input. Please choose 1, 2, 3, or 4.");
+                    System.out.println("Invalid option.");
             }
         }
+    }
+
+    private static void printDivider() {
+        System.out.println("============================================================");
     }
 
     private static void showStatus(Player p) {
         int avgInt = (int) Math.round(p.getBattingAvg() * 1000);
         String avgStr = String.format(".%03d", avgInt);
 
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("PLAYER: " + p.name + " | POS: " + p.position + " | LEVEL: " + p.getCurrentTier());
-        System.out.println("ENERGY: " + p.energy + "/100 | HYPE: " + p.hype + " | PROGRESS PTS: " + p.overallPoints);
-        System.out.println("STATS:  Contact: " + p.contact + " | Power: " + p.power + " | Eye: " + p.discipline + " | Speed: " + p.speed);
-        System.out.println("RECORD: " + p.careerHits + " H / " + p.atBats + " AB (" + avgStr + ") | HR: " + p.careerHrs + " | RBI: " + p.careerRbi);
-        System.out.println("=".repeat(50));
+        printDivider();
+        System.out.println("NAME: " + p.name + " | POS: " + p.position + " | TIER: " + p.getCurrentTier());
+        System.out.println("ENERGY: " + p.energy + "/100 | HYPE: " + p.hype + " | CASH: $" + String.format("%,d", p.bankroll) + " | XP: " + p.overallPoints);
+        System.out.println("RATINGS: CON: " + p.contact + " | PWR: " + p.power + " | EYE: " + p.discipline + " | SPD: " + p.speed + " | FLD: " + p.fielding);
+        System.out.println("STATS:   " + p.careerHits + "-" + p.atBats + " (" + avgStr + ") | HR: " + p.careerHrs + " | RBI: " + p.careerRbi + " | BB: " + p.careerWalks + " | PLAYS: " + p.defensiveStops);
+        printDivider();
     }
 
     private static void train(Player p) {
         if (p.energy < 25) {
-            System.out.println("\nYou're exhausted. Rest first to avoid injury!");
+            System.out.println("\nTraining staff won't clear you. You are red-lining on fatigue! Rest up.");
             return;
         }
 
-        System.out.println("\nSelect Training Focus:");
-        System.out.println("1. Cage Work (+Contact, +XP)");
-        System.out.println("2. Weight Room (+Power, -Speed risk)");
-        System.out.println("3. Video Study (+Discipline, +XP)");
-        System.out.println("4. Sprint Drills (+Speed)");
+        System.out.println("\nSELECT INSTRUCTION DRILL:");
+        System.out.println("1. Hit Trax Cage Work (+Contact, +XP)");
+        System.out.println("2. Heavy Bat & Power Mechanics (+Power, -1 Speed risk)");
+        System.out.println("3. Pitch Recognition / VR Sim (+Discipline, +XP)");
+        System.out.println("4. Agility & Base Running (+Speed)");
+        System.out.println("5. Infield/Outfield Glove Work (+Fielding, +XP)");
         System.out.print("> ");
 
         String choice = scanner.nextLine().trim();
@@ -156,47 +233,123 @@ public class Main {
 
         switch (choice) {
             case "1": {
-                int gain = rng.nextInt(3) + 2; // 2-4
+                int gain = rng.nextInt(3) + 2;
                 p.contact += gain;
                 p.overallPoints += 15;
-                System.out.println("\nLocked in mechanics. Contact increased by +" + gain + "!");
+                System.out.println("Refined your barrel delivery. Contact +" + gain + "!");
                 break;
             }
             case "2": {
-                int gain = rng.nextInt(4) + 2; // 2-5
+                int gain = rng.nextInt(4) + 2;
                 p.power += gain;
                 if (rng.nextDouble() < 0.25 && p.speed > 35) {
                     p.speed -= 1;
-                    System.out.println("\nHeavy sets finished. Power +" + gain + ", but lost 1 Speed to muscle mass.");
+                    System.out.println("Mass gained! Power +" + gain + ", but speed dropped by 1.");
                 } else {
-                    System.out.println("\nHeavy sets finished. Power +" + gain + "!");
+                    System.out.println("Driving balls out of the yard! Power +" + gain + "!");
                 }
                 p.overallPoints += 15;
                 break;
             }
             case "3": {
-                int gain = rng.nextInt(3) + 3; // 3-5
+                int gain = rng.nextInt(3) + 3;
                 p.discipline += gain;
                 p.overallPoints += 20;
-                System.out.println("\nStudied release angles and pitch tunnels. Discipline +" + gain + "!");
+                System.out.println("Recognizing arm slots and release points. Discipline +" + gain + "!");
                 break;
             }
             case "4": {
-                int gain = rng.nextInt(3) + 2; // 2-4
+                int gain = rng.nextInt(3) + 2;
                 p.speed += gain;
-                p.overallPoints += 10;
-                System.out.println("\nExplosive base-running drills. Speed +" + gain + "!");
+                p.overallPoints += 12;
+                System.out.println("Shaved time off your 60-yard dash. Speed +" + gain + "!");
+                break;
+            }
+            case "5": {
+                int gain = rng.nextInt(3) + 2;
+                p.fielding += gain;
+                p.overallPoints += 15;
+                System.out.println("Soft hands on tough hops. Fielding +" + gain + "!");
                 break;
             }
             default:
-                System.out.println("\nIndecision wasted the session. Energy spent without gains.");
+                System.out.println("Indecision led to wasted reps. Energy consumed.");
         }
     }
 
     private static void rest(Player p) {
-        int recovered = rng.nextInt(16) + 35; // 35-50
-        p.energy = Math.min(100, p.energy + recovered);
-        System.out.println("\nIce bath and full night of sleep. Energy restored to " + p.energy + "%.");
+        int restored = rng.nextInt(20) + 35;
+        p.energy = Math.min(100, p.energy + restored);
+        System.out.println("\nFull recovery day. Cryotherapy, massage, and 10 hours sleep. Energy is now " + p.energy + "%.");
+    }
+
+    private static void offFieldEvent(Player p) {
+        if (p.energy < 10) {
+            System.out.println("\nToo exhausted to do anything but sleep.");
+            return;
+        }
+        p.energy -= 10;
+
+        int eventType = rng.nextInt(4);
+        switch (eventType) {
+            case 0:
+                System.out.println("\n[SPONSOR EVENT] A local glove company offers a micro-deal.");
+                System.out.println("1. Sign contract (+$2,500, +5 Hype)");
+                System.out.println("2. Decline to preserve independent brand");
+                System.out.print("> ");
+                if (scanner.nextLine().trim().equals("1")) {
+                    p.bankroll += 2500;
+                    p.hype += 5;
+                    System.out.println("Deal signed! Custom leather arrives next week.");
+                } else {
+                    System.out.println("You bet on bigger deals coming later.");
+                }
+                break;
+            case 1:
+                System.out.println("\n[TEAM NIGHT] Veterans invite you to a late steakhouse dinner.");
+                System.out.println("1. Go bond (-15 Energy, +10 Hype, +Team Chemistry)");
+                System.out.println("2. Stay at team hotel and review scouting reports (+Eye)");
+                System.out.print("> ");
+                if (scanner.nextLine().trim().equals("1")) {
+                    p.energy = Math.max(0, p.energy - 15);
+                    p.hype += 10;
+                    p.overallPoints += 10;
+                    System.out.println("Locker room respect earned. Veterans have your back.");
+                } else {
+                    p.discipline += 2;
+                    System.out.println("Early night. Extra film logged. Eye +2.");
+                }
+                break;
+            case 2:
+                System.out.println("\n[MEDIA SPOTLIGHT] A national baseball podcast invites you on.");
+                System.out.println("1. Give a bold, cocky interview (+15 Hype, -5 Discipline)");
+                System.out.println("2. Give a humble, team-first interview (+5 Hype, +10 XP)");
+                System.out.print("> ");
+                if (scanner.nextLine().trim().equals("1")) {
+                    p.hype += 15;
+                    p.discipline = Math.max(20, p.discipline - 5);
+                    System.out.println("The clip went viral on social media! High expectations follow.");
+                } else {
+                    p.hype += 5;
+                    p.overallPoints += 10;
+                    System.out.println("The front office praised your maturity.");
+                }
+                break;
+            case 3:
+            default:
+                System.out.println("\n[ANALYTICS MEETING] The team's data department offers a swing breakdown.");
+                System.out.println("Spend $1,000 for independent biomechanics consult? (1 = Yes / 2 = No)");
+                System.out.print("> ");
+                if (scanner.nextLine().trim().equals("1") && p.bankroll >= 1000) {
+                    p.bankroll -= 1000;
+                    p.contact += 2;
+                    p.power += 2;
+                    System.out.println("The data unlocked 1.5 mph more bat speed! Contact +2, Power +2.");
+                } else {
+                    System.out.println("You trust your natural instincts.");
+                }
+                break;
+        }
     }
 
     private static void simulateAtBat(Player p) {
@@ -207,100 +360,131 @@ public class Main {
         System.out.println("\n--- Stepping into the box vs. " + p.getCurrentTier() + " Pitching (OVR " + diff + ") ---");
 
         while (strikes < 3 && balls < 4) {
-            boolean pitchInZone = rng.nextDouble() < 0.60;
-            int pitchQuality = diff + (rng.nextInt(25) - 12);
+            // Pitch details
+            int pitchTypeRoll = rng.nextInt(3);
+            String pitchName = (pitchTypeRoll == 0) ? "4-Seam Fastball (97 mph)" : (pitchTypeRoll == 1) ? "Sharp Slider" : "Circle Changeup";
+            boolean pitchInZone = rng.nextDouble() < 0.62;
+            int pitchQuality = diff + (rng.nextInt(26) - 13);
 
-            System.out.println("\nCount: " + balls + "-" + strikes);
-            System.out.println("1. Contact Swing | 2. Power Swing | 3. Take Pitch");
-            System.out.print("Approach > ");
+            System.out.println("\nCount: [" + balls + "-" + strikes + "] | Pitcher winds up...");
+            System.out.println("1. Contact Swing (Protects plate, higher average)");
+            System.out.println("2. Power Swing (Riskier, looking for extra bases)");
+            System.out.println("3. Take Pitch (Work the count / test discipline)");
+            System.out.print("Your Approach > ");
+
             String approach = scanner.nextLine().trim();
 
             if (approach.equals("3")) {
                 if (!pitchInZone) {
-                    if ((p.discipline + (rng.nextInt(25) + 1)) > (diff * 0.72)) {
-                        System.out.println(">> Good take outside. Ball.");
+                    int eyeCheck = p.discipline + rng.nextInt(25);
+                    if (eyeCheck > (diff * 0.70)) {
+                        System.out.println(">> Pitch: " + pitchName + " off the plate. Good eye! Ball " + (balls + 1));
                         balls++;
                     } else {
-                        System.out.println(">> Chased out of the zone! Strike.");
+                        System.out.println(">> Pitch: " + pitchName + " darting outside. You chased it! Strike " + (strikes + 1));
                         strikes++;
                     }
                 } else {
-                    System.out.println(">> Called strike on the corner.");
+                    System.out.println(">> Pitch: " + pitchName + " painted on the edge. Called strike " + (strikes + 1));
                     strikes++;
                 }
             } else if (approach.equals("1") || approach.equals("2")) {
                 boolean isPower = approach.equals("2");
                 int statMod = isPower ? p.power : p.contact;
-                int penalty = isPower ? 18 : 5;
+                int penalty = isPower ? 18 : 6;
 
-                int roll = statMod + (rng.nextInt(40) + 1) - penalty;
-                if (!pitchInZone) roll -= 22;
+                int roll = statMod + (rng.nextInt(38) + 1) - penalty;
+                if (!pitchInZone) roll -= 20;
 
                 if (roll < pitchQuality) {
-                    System.out.println(">> Swing and a miss!");
+                    System.out.println(">> Pitch: " + pitchName + ". You swung through it! Strike " + (strikes + 1));
                     strikes++;
                 } else {
                     p.atBats++;
                     int outcomeRoll = roll - pitchQuality + (rng.nextInt(30) + 1);
 
                     if (isPower && outcomeRoll > 32) {
-                        System.out.println("\n🔥 CRUSHED TO THE UPPER DECK! HOME RUN!");
+                        System.out.println("\n💥 CRACK! " + pitchName + " TURNED ON! GONE! HOME RUN!");
                         p.careerHits++;
                         p.careerHrs++;
-                        p.careerRbi += rng.nextInt(3) + 1;
+                        int rbis = rng.nextInt(3) + 1;
+                        p.careerRbi += rbis;
                         p.overallPoints += 45;
                         p.hype += 15;
+                        System.out.println("Collected " + rbis + " RBI. Dugout goes wild!");
                     } else if (outcomeRoll > 18) {
-                        System.out.println("\n⚾ Driven into the gap for extra bases!");
+                        System.out.println("\n⚾ Ripped into the right-center gap! Standing double!");
                         p.careerHits++;
-                        p.careerRbi += rng.nextInt(3);
+                        int rbis = rng.nextInt(2);
+                        p.careerRbi += rbis;
                         p.overallPoints += 25;
                         p.hype += 8;
                     } else if (outcomeRoll >= 4) {
-                        System.out.println("\n⚾ Sharp ground ball through the infield for a single.");
+                        System.out.println("\n⚾ Hard grounder through the 5.5 hole for a clean single.");
                         p.careerHits++;
-                        p.careerRbi += rng.nextInt(2);
+                        p.careerRbi += (rng.nextDouble() < 0.35) ? 1 : 0;
                         p.overallPoints += 15;
                         p.hype += 4;
                     } else {
-                        System.out.println("\nRoutine grounder to shortstop. Thrown out at first.");
+                        System.out.println("\nWeak contact. Groundout to second base.");
                     }
                     return;
                 }
             } else {
-                System.out.println("Frozen looking! Strike called.");
+                System.out.println("Caught watching! Umpire rings up a strike.");
                 strikes++;
             }
         }
 
         p.atBats++;
         if (balls == 4) {
-            System.out.println("\n>> Ball four! Walk drawn.");
-            p.overallPoints += 10;
+            System.out.println("\n>> BALL FOUR! Tossed the bat aside and walked down to first.");
+            p.careerWalks++;
+            p.overallPoints += 12;
             p.hype += 2;
         } else {
-            System.out.println("\n>> Strike three. Down on strikes.");
+            System.out.println("\n>> STRIKE THREE! Down on strikes. Walk back to the dugout.");
             p.hype = Math.max(0, p.hype - 3);
+        }
+    }
+
+    private static void simulateFieldingPlay(Player p) {
+        System.out.println("\n[DEFENSIVE CHANCE] Sharp line drive hit into your coverage area!");
+        int diff = TIERS[p.tierIdx].pitcherDifficulty;
+        int check = p.fielding + p.speed / 2 + rng.nextInt(25);
+
+        if (check > diff) {
+            System.out.println("🧤 INCREDIBLE PLAY! You made the diving stop and threw across the diamond for the out!");
+            p.defensiveStops++;
+            p.overallPoints += 15;
+            p.hype += 6;
+        } else {
+            System.out.println("Tough hop eaten up. Ruled an infield hit/error.");
         }
     }
 
     private static void playGame(Player p) {
         if (p.energy < 20) {
-            System.out.println("\nManager benched you today due to dead legs. Rest up.");
+            System.out.println("\nManager decided to give you a maintenance day off. Legs are heavy.");
             return;
         }
 
         p.energy -= 20;
-        System.out.println("\nGame Day under the lights in " + p.getCurrentTier() + "!");
+        System.out.println("\n>>> PLAY BALL! Game day in " + p.getCurrentTier() + "! <<<");
 
+        // 3 At Bats per game
         for (int ab = 1; ab <= 3; ab++) {
-            System.out.println("\n[ Plate Appearance " + ab + "/3 ]");
+            System.out.println("\n[ Plate Appearance " + ab + " of 3 ]");
             simulateAtBat(p);
             try {
-                Thread.sleep(300);
+                Thread.sleep(350);
             } catch (InterruptedException ignored) {}
         }
 
+        // 1 Defensive moment
+        simulateFieldingPlay(p);
+
+        // Check if stats qualified player for next level
         p.checkPromotion();
     }
 }
