@@ -3,788 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Road to Cooperstown: Career RPG</title>
+    <title>Road to Cooperstown: 8-Bit Baseball RPG</title>
     <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0d1117;
-            color: #fff;
-            padding: 20px;
-            margin: 0;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: #161b22;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            border: 1px solid #30363d;
-        }
-        h1, h2 {
-            color: #00cecb;
-            text-align: center;
-            margin-bottom: 6px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #8b949e;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 0.95em;
-        }
-        .hud-bar {
+            background: #090c10;
+            color: #f0f6fc;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
-            justify-content: space-around;
-            background: #0d1117;
-            padding: 16px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+        #game-frame {
+            position: relative;
+            border: 4px solid #30363d;
             border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #30363d;
-            flex-wrap: wrap;
-            gap: 12px;
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0, 206, 203, 0.25);
+            width: 640px;
+            height: 480px;
+            overflow: hidden;
         }
-        .hud-item {
-            text-align: center;
-            font-size: 0.9em;
-            color: #8b949e;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-        .hud-item span {
+        canvas {
             display: block;
-            font-size: 1.4em;
+            image-rendering: pixelated;
+        }
+        /* Dialogue & RPG UI Overlays */
+        #dialogue-box {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            height: 110px;
+            background: rgba(13, 17, 23, 0.95);
+            border: 3px solid #00cecb;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+        }
+        #dialogue-speaker {
+            color: #e3b341;
+            font-weight: bold;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+        #dialogue-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #fff;
+        }
+        #dialogue-prompt {
+            font-size: 11px;
+            color: #8b949e;
+            align-self: flex-end;
+            animation: blink 0.8s infinite alternate;
+        }
+        /* Battle HUD Overlay */
+        #battle-ui {
+            position: absolute;
+            inset: 0;
+            background: #0d1117;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+            z-index: 20;
+        }
+        .battle-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .pokemon-hud {
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 6px;
+            padding: 10px 14px;
+            width: 250px;
+        }
+        .hud-name {
+            font-weight: bold;
             color: #00cecb;
-            margin-top: 4px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
         }
-        .hud-item span.danger {
-            color: #f85149;
+        .hp-bar-bg {
+            background: #21262d;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 6px;
+            overflow: hidden;
+            border: 1px solid #30363d;
         }
-        .action-panel {
+        .hp-fill {
+            height: 100%;
+            background: #2ea043;
+            width: 100%;
+            transition: width 0.3s;
+        }
+        .battle-arena {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            position: relative;
+        }
+        .battle-sprite {
+            width: 96px;
+            height: 96px;
+            image-rendering: pixelated;
+        }
+        .battle-menu {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin: 20px 0;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #161b22;
+            border: 2px solid #00cecb;
+            padding: 10px;
+            border-radius: 6px;
+            height: 110px;
         }
-        @media (max-width: 768px) {
-            .action-panel {
-                grid-template-columns: repeat(2, 1fr);
+        .battle-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .battle-btn:hover {
+            background: #30363d;
+            border-color: #00cecb;
+        }
+        #battle-log {
+            font-size: 13px;
+            color: #e3b341;
+            padding: 4px;
+            grid-column: span 2;
+            align-self: center;
+        }
+        /* Mobile / Touch Controls */
+        #touch-controls {
+            display: none;
+            margin-top: 15px;
+            gap: 20px;
+        }
+        @media (max-width: 680px) {
+            #game-frame {
+                width: 100vw;
+                height: 75vw;
+            }
+            #touch-controls {
+                display: flex;
             }
         }
-        .btn {
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 45px);
+            grid-template-rows: repeat(3, 45px);
+            gap: 4px;
+        }
+        .d-btn {
             background: #21262d;
             border: 2px solid #30363d;
             color: #fff;
-            padding: 14px 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .btn:hover:not(:disabled) {
-            background: #30363d;
-            border-color: #00cecb;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,206,203,0.25);
-        }
-        .btn.primary {
-            background: #00cecb;
-            color: #0d1117;
-            border-color: #00cecb;
-        }
-        .btn.primary:hover:not(:disabled) {
-            background: #00b4b1;
-        }
-        .btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        .pixel-portrait {
-            display: grid;
-            grid-template-columns: repeat(8, 6px);
-            grid-template-rows: repeat(8, 6px);
-            width: 48px;
-            height: 48px;
-            margin: 10px auto;
-            image-rendering: pixelated;
-        }
-        .p-block {
-            width: 6px;
-            height: 6px;
-        }
-        .tier-card {
-            background: linear-gradient(135deg, #1b263b, #0d1b2a);
-            border: 2px dashed #e3b341;
-            border-radius: 8px;
-            padding: 14px 20px;
-            margin: 15px 0;
+            border-radius: 6px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
+            justify-content: center;
+            font-size: 18px;
+            touch-action: manipulation;
         }
-        .tier-title {
-            color: #e3b341;
-            font-weight: 900;
-            font-size: 1.1em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .tier-desc {
-            color: #c9d1d9;
-            font-size: 0.9em;
-        }
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        @media (max-width: 900px) {
-            .card-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        @media (max-width: 600px) {
-            .card-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        .stat-card {
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 12px 6px;
-            text-align: center;
-        }
-        .stat-val {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: #00cecb;
-            margin-top: 4px;
-        }
-        .stat-lbl {
-            font-size: 0.75em;
+        .d-btn:active { background: #00cecb; color: #000; }
+        .instructions {
+            margin-top: 10px;
             color: #8b949e;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .badge {
-            display: inline-block;
-            font-size: 0.7em;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 4px;
-        }
-        .badge.pwr { background: #f85149; color: #fff; }
-        .badge.cnt { background: #e3b341; color: #000; }
-        .badge.spd { background: #a371f7; color: #fff; }
-        .badge.eye { background: #2ea043; color: #fff; }
-        .badge.fld { background: #1f6feb; color: #fff; }
-
-        .game-modal {
-            background: #0d1117;
-            border: 2px solid #00cecb;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 0 20px rgba(0, 206, 203, 0.25);
-        }
-        .modal-title {
-            color: #e3b341;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .pitch-box {
-            font-size: 1.5em;
-            font-weight: bold;
+            font-size: 12px;
             text-align: center;
-            margin: 15px 0;
-            color: #00cecb;
         }
-        .log-feed {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 12px;
-            height: 140px;
-            overflow-y: auto;
-            font-size: 0.88em;
-            line-height: 1.5;
-            color: #c9d1d9;
-            margin-top: 15px;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .log-entry { margin-bottom: 4px; }
-        .log-good { color: #2ea043; font-weight: bold; }
-        .log-bad { color: #f85149; }
-        .log-event { color: #e3b341; }
-
-        .progress-bar-container {
-            background: #21262d;
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #30363d;
-            margin-top: 8px;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1f6feb, #00cecb);
-            width: 0%;
-            transition: width 0.3s;
+        @keyframes blink {
+            from { opacity: 0.2; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>MLB Road to Cooperstown</h1>
-    <p class="subtitle">Guide your drafted prospect through the Minor League ranks to Cooperstown immortality.</p>
-
-    <!-- Setup Wizard -->
-    <div id="setup-section" class="game-modal">
-        <div class="modal-title">Prospect Draft Central</div>
-        <p style="color:#c9d1d9; font-size:0.9em;">Create your prospect and choose an amateur player archetype:</p>
+    <div id="game-frame">
+        <canvas id="screen" width="640" height="480"></canvas>
         
-        <div style="display:flex; gap:15px; flex-wrap:wrap; margin:15px 0;">
-            <input type="text" id="input-name" placeholder="Prospect Name (e.g. Kid Carter)" style="background:#21262d; border:1px solid #30363d; color:#fff; padding:10px 14px; border-radius:6px; flex:1; min-width:200px; font-size:1em;">
-            <select id="input-pos" style="background:#21262d; border:1px solid #30363d; color:#00cecb; padding:10px 14px; border-radius:6px; font-weight:bold; font-size:1em;">
-                <option value="SS">Shortstop (SS)</option>
-                <option value="CF">Center Field (CF)</option>
-                <option value="3B">Third Base (3B)</option>
-                <option value="C">Catcher (C)</option>
-                <option value="1B">First Base (1B)</option>
-                <option value="RF">Right Field (RF)</option>
-            </select>
+        <!-- Top-Down Interaction Dialogue Box -->
+        <div id="dialogue-box">
+            <div id="dialogue-speaker">Coach Miller</div>
+            <div id="dialogue-text">Welcome to the Single-A facility, Kid! Step on the diamond to face the pitcher.</div>
+            <div id="dialogue-prompt">Press [SPACE] or [A] to continue</div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin: 15px 0;">
-            <button class="btn" onclick="selectArchetype(1)" id="arch-1">
-                <strong>College Slugger</strong><br>
-                <span style="font-size:0.75em; color:#8b949e;">High Power / High Bonus</span>
-            </button>
-            <button class="btn" onclick="selectArchetype(2)" id="arch-2">
-                <strong>Prep 5-Tool Phenom</strong><br>
-                <span style="font-size:0.75em; color:#8b949e;">Elite Speed & Upside</span>
-            </button>
-            <button class="btn" onclick="selectArchetype(3)" id="arch-3">
-                <strong>Late-Round Grinder</strong><br>
-                <span style="font-size:0.75em; color:#8b949e;">High Contact & Glove</span>
-            </button>
-        </div>
+        <!-- Pokemon-Style Battle System -->
+        <div id="battle-ui">
+            <div class="battle-top">
+                <div class="pokemon-hud">
+                    <div class="hud-name">
+                        <span id="opp-name">Ace Pitcher</span>
+                        <span id="opp-level">Lv. 15</span>
+                    </div>
+                    <div style="font-size:11px; color:#8b949e; margin-top:4px;">STAMINA</div>
+                    <div class="hp-bar-bg"><div id="opp-hp" class="hp-fill"></div></div>
+                </div>
 
-        <button class="btn primary" style="width:100%; margin-top:10px;" onclick="startGame()">Sign Contract & Enter System</button>
-    </div>
-
-    <!-- Main Game Interface (Hidden initially) -->
-    <div id="gameplay-section" style="display: none;">
-        
-        <div class="tier-card">
-            <div>
-                <div class="tier-title" id="tier-name">Single-A Ball</div>
-                <div class="tier-desc" id="tier-desc">Promotion Target: 150 Progress Points</div>
-            </div>
-            <div style="min-width: 220px;">
-                <div style="font-size: 0.8em; color: #8b949e; text-align: right;">Progress to Next Tier</div>
-                <div class="progress-bar-container">
-                    <div id="prog-fill" class="progress-bar-fill"></div>
+                <div class="pokemon-hud">
+                    <div class="hud-name">
+                        <span id="player-hud-name">Kid Carter</span>
+                        <span id="player-tier-lbl">Single-A</span>
+                    </div>
+                    <div style="font-size:11px; color:#8b949e; margin-top:4px;">COUNT / ENERGY</div>
+                    <div class="hp-bar-bg"><div id="player-hp" class="hp-fill"></div></div>
+                    <div id="count-display" style="font-size:12px; color:#e3b341; margin-top:4px; font-weight:bold;">Count: 0-0</div>
                 </div>
             </div>
-        </div>
 
-        <!-- HUD Bar -->
-        <div class="hud-bar">
-            <div class="hud-item">Energy <span id="hud-energy">100%</span></div>
-            <div class="hud-item">Hype Level <span id="hud-hype">15</span></div>
-            <div class="hud-item">Career Bank <span id="hud-cash">$50,000</span></div>
-            <div class="hud-item">Season Record <span id="hud-record">0-0 (.000)</span></div>
-            <div class="hud-item">HR / RBI <span id="hud-power">0 / 0</span></div>
-        </div>
-
-        <div style="text-align: center;" id="portrait-slot"></div>
-        <h2 id="hud-player-title" style="margin-top:0;">Player Card</h2>
-
-        <!-- Scouting 20-80 Scale Stats -->
-        <div class="card-grid">
-            <div class="stat-card">
-                <div class="stat-lbl">Contact</div>
-                <div class="stat-val" id="val-cnt">45</div>
-                <span class="badge cnt">CNT</span>
+            <div class="battle-arena">
+                <canvas id="player-sprite-canvas" class="battle-sprite" width="96" height="96"></canvas>
+                <canvas id="pitcher-sprite-canvas" class="battle-sprite" width="96" height="96"></canvas>
             </div>
-            <div class="stat-card">
-                <div class="stat-lbl">Power</div>
-                <div class="stat-val" id="val-pwr">40</div>
-                <span class="badge pwr">PWR</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-lbl">Plate Eye</div>
-                <div class="stat-val" id="val-eye">40</div>
-                <span class="badge eye">DISC</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-lbl">Speed</div>
-                <div class="stat-val" id="val-spd">50</div>
-                <span class="badge spd">SPD</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-lbl">Defense</div>
-                <div class="stat-val" id="val-fld">45</div>
-                <span class="badge fld">GLOVE</span>
-            </div>
-        </div>
 
-        <!-- Career Action Dashboard -->
-        <div class="action-panel">
-            <button class="btn primary" onclick="openGameModal()">⚾ Play Game Day (-20 Energy)</button>
-            <button class="btn" onclick="openTrainingModal()">🏋️ Training Facility (-25 Energy)</button>
-            <button class="btn" onclick="triggerClubEvent()">💼 Off-Field Event (-10 Energy)</button>
-            <button class="btn" onclick="triggerRest()">🛌 Rest & Cryo (+45 Energy)</button>
-        </div>
-
-        <!-- Interactive Event / Simulation Modal -->
-        <div id="interaction-modal" class="game-modal" style="display: none;">
-            <div class="modal-title" id="modal-heading">Interactive Event</div>
-            <div id="modal-body"></div>
-        </div>
-
-        <!-- Event Log Feed -->
-        <div class="log-feed" id="game-feed">
-            <div class="log-entry log-event">Draft Day complete. Welcome to the organization!</div>
+            <div class="battle-menu" id="battle-btn-grid">
+                <button class="battle-btn" onclick="battleAction('contact')">⚔️ Contact Swing</button>
+                <button class="battle-btn" onclick="battleAction('power')">💥 Power Swing</button>
+                <button class="battle-btn" onclick="battleAction('take')">👁️ Take Pitch</button>
+                <button class="battle-btn" onclick="battleAction('bunt')">⚡ Drag Bunt</button>
+            </div>
+            <div id="battle-log" style="display:none;"></div>
         </div>
     </div>
-</div>
+
+    <!-- On-screen controls for mobile/tablet -->
+    <div id="touch-controls">
+        <div class="d-pad">
+            <div></div><button class="d-btn" id="btn-up">▲</button><div></div>
+            <button class="d-btn" id="btn-left">◀</button><div></div><button class="d-btn" id="btn-right">▶</button>
+            <div></div><button class="d-btn" id="btn-down">▼</button><div></div>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:center; gap:10px;">
+            <button class="d-btn" id="btn-act" style="width:70px; height:50px; font-weight:bold;">A / TALK</button>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <strong>Controls:</strong> [W,A,S,D] or [Arrow Keys] to Walk | [Space] or [Enter] to Interact / Talk / Confirm
+    </div>
 
 <script>
-    const TIERS = [
-        { name: "Single-A Ball", target: 140, difficulty: 45 },
-        { name: "High-A Ball", target: 300, difficulty: 58 },
-        { name: "Double-A (Prospect Central)", target: 500, difficulty: 70 },
-        { name: "Triple-A (Taxi Squad)", target: 750, difficulty: 82 },
-        { name: "The Show: Major Leagues", target: 1100, difficulty: 91 },
-        { name: "MLB All-Star & Legend", target: 99999, difficulty: 98 }
-    ];
+/* --- GAME ARCHITECTURE & STATE --- */
+const TILE_SIZE = 32;
+const MAP_COLS = 20;
+const MAP_ROWS = 15;
 
-    let player = {
-        name: "Marcus Vance",
-        pos: "SS",
-        arch: 1,
-        tierIdx: 0,
-        energy: 100,
-        hype: 15,
-        cash: 50000,
-        progress: 0,
-        // Ratings
-        contact: 45,
-        power: 40,
-        discipline: 40,
-        speed: 50,
-        fielding: 45,
-        // Stats
-        ab: 0,
-        hits: 0,
-        hrs: 0,
-        rbi: 0,
-        walks: 0,
-        stops: 0
-    };
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
 
-    let selectedArch = 1;
+let gameState = "OVERWORLD"; // OVERWORLD, DIALOGUE, BATTLE
+let activeDialogue = null;
+let dialogueQueue = [];
 
-    function render8BitFaceHTML(name) {
-        let seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const skinColors = ["#dfa070", "#c68a5c", "#a0653d", "#eec590", "#f5d0b0"];
-        const hairColors = ["#000000", "#4a2306", "#9a3300", "#d8b020", "#666666"];
-        const capColors = ["#0c2340", "#ba0c2f", "#005a9c", "#005c5c", "#ff5910", "#003831"];
+// Player RPG Stats
+const player = {
+    x: 5 * TILE_SIZE,
+    y: 7 * TILE_SIZE,
+    speed: 3,
+    direction: "down", // up, down, left, right
+    moving: false,
+    name: "Kid Carter",
+    tier: 0, // 0: Single-A, 1: Double-A, 2: Triple-A, 3: The Show
+    xp: 0,
+    contact: 50,
+    power: 45,
+    discipline: 45,
+    energy: 100,
+    wins: 0
+};
 
-        let skin = skinColors[seed % skinColors.length];
-        let hair = hairColors[(seed >> 2) % hairColors.length];
-        let cap = capColors[(seed >> 4) % capColors.length];
-        let bg = "rgba(0,0,0,0.15)";
+const TIERS = [
+    { name: "Single-A Ball", rival: "Fireball Fleming", rivalLv: "Lv. 15", reqXp: 100, pitchDiff: 45 },
+    { name: "Double-A Ball", rival: "Slider Santana", rivalLv: "Lv. 35", reqXp: 250, pitchDiff: 60 },
+    { name: "Triple-A Ball", rival: "K-Doctor Davis", rivalLv: "Lv. 60", reqXp: 500, pitchDiff: 75 },
+    { name: "The Major Leagues", rival: "Gerrit Cy Young", rivalLv: "Lv. 99", reqXp: 1000, pitchDiff: 92 }
+];
 
-        let html = '<div class="pixel-portrait">';
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-                let color = bg;
-                if (r <= 2 && c >= 2 && c <= 5) color = cap;
-                else if (r === 2 && (c === 1 || c === 6)) color = hair;
-                else if (r >= 3 && r <= 5 && c >= 2 && c <= 5) color = skin;
-                else if (r >= 6) color = cap;
-                html += `<div class="p-block" style="background:${color}"></div>`;
-            }
-        }
-        html += '</div>';
-        return html;
+/* --- OVERWORLD MAP DATA (Tile Codes) ---
+   0: Grass
+   1: Dirt Path / Diamond
+   2: Wall / Fence (Solid)
+   3: Wooden Floor (Training Center)
+   4: Dugout Bench
+   5: Pitcher Mound (Encounter Tile)
+*/
+const WORLD_MAP = [
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,3,3,3,2,0,0,0,0,0,2,1,1,1,1,1,1,1,1,2],
+    [2,3,3,3,2,0,0,0,0,0,2,1,0,0,1,0,0,0,1,2],
+    [2,3,3,3,2,0,4,4,4,0,2,1,0,5,1,0,0,0,1,2],
+    [2,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,2],
+    [2,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,2],
+    [2,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,2],
+    [2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
+    [2,0,1,0,0,2,2,3,3,2,2,0,0,0,0,0,0,0,0,2],
+    [2,0,1,1,1,2,3,3,3,3,2,0,0,0,4,4,4,0,0,2],
+    [2,0,0,0,1,2,3,3,3,3,2,0,0,0,0,0,0,0,0,2],
+    [2,0,0,0,1,2,2,0,0,2,2,0,0,0,0,0,0,0,0,2],
+    [2,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,2],
+    [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+];
+
+// NPCs in the overworld
+const NPCS = [
+    {
+        name: "Coach Miller",
+        x: 6 * TILE_SIZE,
+        y: 4 * TILE_SIZE,
+        color: "#e3b341",
+        lines: [
+            "Welcome to the clubhouse, kid!",
+            "Head north onto the diamond to take on opposing pitchers in live counts.",
+            "Use the batting cages or weight room to build up your stats if you get stuck!"
+        ]
+    },
+    {
+        name: "Scout Henderson",
+        x: 8 * TILE_SIZE,
+        y: 10 * TILE_SIZE,
+        color: "#a371f7",
+        lines: [
+            "I'm tracking your progress for the front office.",
+            "Win encounters on the mound to gain XP and earn a promotion call-up!"
+        ]
+    },
+    {
+        name: "Cage Instructor",
+        x: 2 * TILE_SIZE,
+        y: 2 * TILE_SIZE,
+        color: "#f85149",
+        action: "TRAIN_CONTACT",
+        lines: [
+            "Grab that 33-inch maple bat! Let's work on bat speed.",
+            "Contact rating increased by +2! Energy -10."
+        ]
+    }
+];
+
+/* --- INPUT HANDLING --- */
+const keys = {};
+
+window.addEventListener("keydown", e => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === " " || e.key === "Enter") {
+        handleInteractButton();
+    }
+});
+window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// Mobile button listeners
+function bindTouch(id, keyName) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[keyName] = true; });
+    el.addEventListener("touchend", (e) => { e.preventDefault(); keys[keyName] = false; });
+}
+bindTouch("btn-up", "arrowup");
+bindTouch("btn-down", "arrowdown");
+bindTouch("btn-left", "arrowleft");
+bindTouch("btn-right", "arrowright");
+document.getElementById("btn-act").addEventListener("click", handleInteractButton);
+
+function handleInteractButton() {
+    if (gameState === "DIALOGUE") {
+        advanceDialogue();
+    } else if (gameState === "OVERWORLD") {
+        checkNpcInteraction();
+    }
+}
+
+/* --- OVERWORLD ENGINE --- */
+function isSolid(x, y) {
+    const col = Math.floor(x / TILE_SIZE);
+    const row = Math.floor(y / TILE_SIZE);
+    if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return true;
+    const tile = WORLD_MAP[row][col];
+    return tile === 2 || tile === 4; // Wall or Bench
+}
+
+function updateOverworld() {
+    if (gameState !== "OVERWORLD") return;
+
+    let dx = 0;
+    let dy = 0;
+
+    if (keys["w"] || keys["arrowup"]) { dy -= player.speed; player.direction = "up"; }
+    else if (keys["s"] || keys["arrowdown"]) { dy += player.speed; player.direction = "down"; }
+    else if (keys["a"] || keys["arrowleft"]) { dx -= player.speed; player.direction = "left"; }
+    else if (keys["d"] || keys["arrowright"]) { dx += player.speed; player.direction = "right"; }
+
+    player.moving = (dx !== 0 || dy !== 0);
+
+    // Bounding Box Collision
+    const margin = 6;
+    const newX = player.x + dx;
+    const newY = player.y + dy;
+
+    if (!isSolid(newX + margin, player.y + margin) && !isSolid(newX + TILE_SIZE - margin, player.y + TILE_SIZE - margin)) {
+        player.x = newX;
+    }
+    if (!isSolid(player.x + margin, newY + margin) && !isSolid(player.x + TILE_SIZE - margin, newY + TILE_SIZE - margin)) {
+        player.y = newY;
     }
 
-    function selectArchetype(id) {
-        selectedArch = id;
-        document.querySelectorAll('[id^="arch-"]').forEach(btn => btn.style.borderColor = "#30363d");
-        document.getElementById(`arch-${id}`).style.borderColor = "#00cecb";
+    // Check Mound Encounter Tile
+    const centerCol = Math.floor((player.x + TILE_SIZE / 2) / TILE_SIZE);
+    const centerRow = Math.floor((player.y + TILE_SIZE / 2) / TILE_SIZE);
+    if (WORLD_MAP[centerRow][centerCol] === 5) {
+        startBattleTransition();
     }
+}
 
-    function startGame() {
-        let nameInput = document.getElementById("input-name").value.trim();
-        if (nameInput) player.name = nameInput;
-        player.pos = document.getElementById("input-pos").value;
+function checkNpcInteraction() {
+    let checkX = player.x;
+    let checkY = player.y;
+    const reach = 24;
 
-        if (selectedArch === 1) {
-            player.contact = 48; player.power = 65; player.discipline = 42; player.speed = 40; player.fielding = 45;
-            player.cash = 150000; player.hype = 40;
-        } else if (selectedArch === 2) {
-            player.contact = 42; player.power = 48; player.discipline = 38; player.speed = 70; player.fielding = 55;
-            player.cash = 80000; player.hype = 25;
-        } else {
-            player.contact = 55; player.power = 38; player.discipline = 58; player.speed = 48; player.fielding = 60;
-            player.cash = 15000; player.hype = 10;
-        }
+    if (player.direction === "up") checkY -= reach;
+    if (player.direction === "down") checkY += reach;
+    if (player.direction === "left") checkX -= reach;
+    if (player.direction === "right") checkX += reach;
 
-        document.getElementById("setup-section").style.display = "none";
-        document.getElementById("gameplay-section").style.display = "block";
-        updateUI();
-        logMessage(`Signed professional contract! Assigned to ${TIERS[0].name}.`, "log-event");
-    }
-
-    function logMessage(msg, cls = "") {
-        const feed = document.getElementById("game-feed");
-        const entry = document.createElement("div");
-        entry.className = `log-entry ${cls}`;
-        entry.innerHTML = `> ${msg}`;
-        feed.prepend(entry);
-    }
-
-    function updateUI() {
-        const currentTier = TIERS[player.tierIdx];
-        document.getElementById("tier-name").innerText = currentTier.name;
-        document.getElementById("tier-desc").innerText = `Promotion Target: ${currentTier.target} XP Points`;
-
-        let prevReq = player.tierIdx > 0 ? TIERS[player.tierIdx - 1].target : 0;
-        let pct = Math.min(100, Math.max(0, ((player.progress - prevReq) / (currentTier.target - prevReq)) * 100));
-        document.getElementById("prog-fill").style.width = `${pct}%`;
-
-        document.getElementById("hud-energy").innerText = `${player.energy}%`;
-        document.getElementById("hud-energy").className = player.energy < 25 ? "danger" : "";
-        document.getElementById("hud-hype").innerText = player.hype;
-        document.getElementById("hud-cash").innerText = `$${player.cash.toLocaleString()}`;
-
-        let avg = player.ab > 0 ? (player.hits / player.ab).toFixed(3).replace(/^0/, '') : '.000';
-        document.getElementById("hud-record").innerText = `${player.hits}-${player.ab} (${avg})`;
-        document.getElementById("hud-power").innerText = `${player.hrs} / ${player.rbi}`;
-
-        document.getElementById("portrait-slot").innerHTML = render8BitFaceHTML(player.name);
-        document.getElementById("hud-player-title").innerText = `${player.name} (${player.pos})`;
-
-        document.getElementById("val-cnt").innerText = player.contact;
-        document.getElementById("val-pwr").innerText = player.power;
-        document.getElementById("val-eye").innerText = player.discipline;
-        document.getElementById("val-spd").innerText = player.speed;
-        document.getElementById("val-fld").innerText = player.fielding;
-
-        checkPromotion();
-    }
-
-    function checkPromotion() {
-        if (player.tierIdx < TIERS.length - 1) {
-            if (player.progress >= TIERS[player.tierIdx].target) {
-                player.tierIdx++;
-                player.hype += 20;
-                player.energy = Math.min(100, player.energy + 25);
-                logMessage(`🚨 CALL-UP ALERT! You've been promoted to ${TIERS[player.tierIdx].name}!`, "log-good");
-                updateUI();
-            }
-        }
-    }
-
-    // --- Training Modal ---
-    function openTrainingModal() {
-        if (player.energy < 25) {
-            logMessage("Training staff rejected you: Energy is too low! Rest first.", "log-bad");
+    for (let npc of NPCS) {
+        const dist = Math.hypot((npc.x) - checkX, (npc.y) - checkY);
+        if (dist < 32) {
+            triggerDialogue(npc);
             return;
         }
-        const modal = document.getElementById("interaction-modal");
-        modal.style.display = "block";
-        document.getElementById("modal-heading").innerText = "Player Development Facility";
-
-        document.getElementById("modal-body").innerHTML = `
-            <p style="color:#c9d1d9;">Select workout focus (-25 Energy):</p>
-            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
-                <button class="btn" onclick="executeTraining('cnt')">Cage Work (+Contact, +XP)</button>
-                <button class="btn" onclick="executeTraining('pwr')">Weight Room (+Power, -Speed risk)</button>
-                <button class="btn" onclick="executeTraining('eye')">VR Tunnels (+Discipline, +XP)</button>
-                <button class="btn" onclick="executeTraining('spd')">Burst Drills (+Speed)</button>
-            </div>
-            <button class="btn" style="width:100%; margin-top:12px;" onclick="closeModal()">Back to Locker Room</button>
-        `;
     }
+}
 
-    function executeTraining(type) {
-        player.energy -= 25;
-        if (type === 'cnt') {
-            let gain = Math.floor(Math.random() * 3) + 2;
-            player.contact += gain;
-            player.progress += 15;
-            logMessage(`Cage work dialed in. Contact +${gain}!`, "log-good");
-        } else if (type === 'pwr') {
-            let gain = Math.floor(Math.random() * 4) + 2;
-            player.power += gain;
-            if (Math.random() < 0.25 && player.speed > 35) {
-                player.speed -= 1;
-                logMessage(`Heavy squats! Power +${gain}, but lost 1 Speed to mass.`, "log-event");
-            } else {
-                logMessage(`Crushed the weight room! Power +${gain}!`, "log-good");
-            }
-            player.progress += 15;
-        } else if (type === 'eye') {
-            let gain = Math.floor(Math.random() * 3) + 3;
-            player.discipline += gain;
-            player.progress += 20;
-            logMessage(`Studying pitch shapes. Discipline +${gain}!`, "log-good");
-        } else if (type === 'spd') {
-            let gain = Math.floor(Math.random() * 3) + 2;
-            player.speed += gain;
-            player.progress += 10;
-            logMessage(`Sprints completed. Speed +${gain}!`, "log-good");
-        }
-        closeModal();
-        updateUI();
+function triggerDialogue(npc) {
+    gameState = "DIALOGUE";
+    activeDialogue = npc;
+    dialogueQueue = [...npc.lines];
+    document.getElementById("dialogue-speaker").innerText = npc.name;
+    document.getElementById("dialogue-box").style.display = "flex";
+    advanceDialogue();
+
+    // Trigger stat training actions
+    if (npc.action === "TRAIN_CONTACT") {
+        player.contact += 2;
+        player.energy = Math.max(10, player.energy - 10);
     }
+}
 
-    function triggerRest() {
-        let rec = Math.floor(Math.random() * 16) + 35;
-        player.energy = Math.min(100, player.energy + rec);
-        logMessage(`Ice bath, hydromassage, and 9 hours of sleep. Energy restored to ${player.energy}%.`, "log-good");
-        updateUI();
+function advanceDialogue() {
+    if (dialogueQueue.length > 0) {
+        document.getElementById("dialogue-text").innerText = dialogueQueue.shift();
+    } else {
+        document.getElementById("dialogue-box").style.display = "none";
+        gameState = "OVERWORLD";
     }
+}
 
-    function triggerClubEvent() {
-        if (player.energy < 10) {
-            logMessage("Too tired to participate in extracurricular events.", "log-bad");
-            return;
-        }
-        player.energy -= 10;
-        let eventId = Math.floor(Math.random() * 3);
+/* --- RENDERING: TOP-DOWN RETRO WORLD --- */
+function drawOverworld() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const modal = document.getElementById("interaction-modal");
-        modal.style.display = "block";
-        document.getElementById("modal-heading").innerText = "Off-Field Opportunity";
+    // Draw Map Tiles
+    for (let r = 0; r < MAP_ROWS; r++) {
+        for (let c = 0; c < MAP_COLS; c++) {
+            const tile = WORLD_MAP[r][c];
+            const px = c * TILE_SIZE;
+            const py = r * TILE_SIZE;
 
-        if (eventId === 0) {
-            document.getElementById("modal-body").innerHTML = `
-                <p>A regional sporting goods brand offers an endorsement deal.</p>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn primary" onclick="resolveEvent(0, true)">Accept (+$3,000, +5 Hype)</button>
-                    <button class="btn" onclick="resolveEvent(0, false)">Decline (Protect Brand)</button>
-                </div>
-            `;
-        } else if (eventId === 1) {
-            document.getElementById("modal-body").innerHTML = `
-                <p>Team veterans invite you out to an expensive dinner late at night.</p>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn primary" onclick="resolveEvent(1, true)">Attend (-15 Energy, +12 Hype, +XP)</button>
-                    <button class="btn" onclick="resolveEvent(1, false)">Hit the Film Room (+2 Eye)</button>
-                </div>
-            `;
-        } else {
-            document.getElementById("modal-body").innerHTML = `
-                <p>Analytics staff offers an advanced biomechanical bat-sensor consult.</p>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn primary" onclick="resolveEvent(2, true)">Pay $1,500 (+2 Contact, +2 Power)</button>
-                    <button class="btn" onclick="resolveEvent(2, false)">Stick to Natural Swing</button>
-                </div>
-            `;
-        }
-    }
-
-    function resolveEvent(id, choice) {
-        if (id === 0) {
-            if (choice) {
-                player.cash += 3000;
-                player.hype += 5;
-                logMessage("Endorsement signed! Cash deposited.", "log-good");
-            } else {
-                logMessage("Turned down the small-market endorsement.", "log-event");
-            }
-        } else if (id === 1) {
-            if (choice) {
-                player.energy = Math.max(0, player.energy - 15);
-                player.hype += 12;
-                player.progress += 10;
-                logMessage("Locker room respect earned from the veterans!", "log-good");
-            } else {
-                player.discipline += 2;
-                logMessage("Studied opponent release points. Discipline +2.", "log-good");
-            }
-        } else if (id === 2) {
-            if (choice && player.cash >= 1500) {
-                player.cash -= 1500;
-                player.contact += 2;
-                player.power += 2;
-                logMessage("Biometrics report unlocked smoother exit velocity! Contact +2, Power +2.", "log-good");
-            } else {
-                logMessage("Preserved bankroll and kept your classic mechanics.", "log-event");
+            if (tile === 0) {
+                // Grass
+                ctx.fillStyle = (r + c) % 2 === 0 ? "#1b4d3e" : "#163d31";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 1) {
+                // Dirt
+                ctx.fillStyle = "#8a5d3b";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 2) {
+                // Stadium Wall
+                ctx.fillStyle = "#21262d";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = "#30363d";
+                ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 3) {
+                // Wood Gym floor
+                ctx.fillStyle = "#b07d4b";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = "#85582f";
+                ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 4) {
+                // Dugout bench
+                ctx.fillStyle = "#0c2340";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+            } else if (tile === 5) {
+                // Pitcher's rubber
+                ctx.fillStyle = "#a87148";
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(px + 10, py + 12, 12, 6);
             }
         }
-        closeModal();
-        updateUI();
     }
 
-    // --- In-Game Live At-Bat Engine ---
-    let currentCount = { b: 0, s: 0 };
-    let currentPA = 1;
+    // Draw NPCs
+    for (let npc of NPCS) {
+        drawPixelCharacter(ctx, npc.x, npc.y, npc.color, "down");
+        // Name tag
+        ctx.fillStyle = "#fff";
+        ctx.font = "9px monospace";
+        ctx.fillText(npc.name, npc.x - 8, npc.y - 4);
+    }
 
-    function openGameModal() {
-        if (player.energy < 20) {
-            logMessage("Manager benched you due to fatigue. Legs are dead!", "log-bad");
-            return;
+    // Draw Player
+    drawPixelCharacter(ctx, player.x, player.y, "#00cecb", player.direction);
+
+    // Top-left HUD badge
+    ctx.fillStyle = "rgba(13, 17, 23, 0.85)";
+    ctx.fillRect(8, 8, 220, 48);
+    ctx.strokeStyle = "#00cecb";
+    ctx.strokeRect(8, 8, 220, 48);
+    ctx.fillStyle = "#e3b341";
+    ctx.font = "bold 11px monospace";
+    ctx.fillText(`${player.name} (${TIERS[player.tier].name})`, 16, 24);
+    ctx.fillStyle = "#8b949e";
+    ctx.fillText(`XP: ${player.xp}/${TIERS[player.tier].reqXp} | Energy: ${player.energy}%`, 16, 42);
+}
+
+// 8-Bit Pixel Character Generator
+function drawPixelCharacter(c, x, y, capColor, dir) {
+    c.fillStyle = capColor;
+    c.fillRect(x + 8, y + 4, 16, 10); // Cap / Head
+    c.fillStyle = "#dfa070";
+    c.fillRect(x + 10, y + 10, 12, 8); // Face
+
+    // Eye directions
+    c.fillStyle = "#000";
+    if (dir === "down") {
+        c.fillRect(x + 11, y + 13, 2, 2);
+        c.fillRect(x + 19, y + 13, 2, 2);
+    } else if (dir === "left") {
+        c.fillRect(x + 9, y + 13, 2, 2);
+    } else if (dir === "right") {
+        c.fillRect(x + 21, y + 13, 2, 2);
+    }
+
+    // Jersey Body
+    c.fillStyle = "#ffffff";
+    c.fillRect(x + 6, y + 18, 20, 10);
+    // Pants / Legs
+    c.fillStyle = "#30363d";
+    c.fillRect(x + 8, y + 28, 6, 4);
+    c.fillRect(x + 18, y + 28, 6, 4);
+}
+
+/* --- POKÉMON BATTLE ENGINE --- */
+let battleState = {
+    oppHp: 100,
+    balls: 0,
+    strikes: 0,
+    active: false
+};
+
+function startBattleTransition() {
+    gameState = "BATTLE";
+    player.y += 36; // Step player back from encounter tile
+
+    const tierInfo = TIERS[player.tier];
+    document.getElementById("opp-name").innerText = tierInfo.rival;
+    document.getElementById("opp-level").innerText = tierInfo.rivalLv;
+    document.getElementById("player-tier-lbl").innerText = tierInfo.name;
+
+    battleState.oppHp = 100;
+    battleState.balls = 0;
+    battleState.strikes = 0;
+    battleState.active = true;
+
+    drawBattleSprites();
+    updateBattleHUD();
+
+    document.getElementById("battle-ui").style.display = "flex";
+    showBattleLog(`An opposing ace (${tierInfo.rival}) challenged you to an at-bat!`);
+}
+
+function drawBattleSprites() {
+    const pCanvas = document.getElementById("player-sprite-canvas");
+    const pCtx = pCanvas.getContext("2d");
+    pCtx.clearRect(0, 0, 96, 96);
+    // Draw back-facing batter
+    pCtx.fillStyle = "#00cecb";
+    pCtx.fillRect(28, 12, 40, 32); // Helmet
+    pCtx.fillStyle = "#ffffff";
+    pCtx.fillRect(20, 44, 56, 40); // Jersey back
+    pCtx.fillStyle = "#e3b341";
+    pCtx.fillRect(72, 20, 10, 50); // Wooden bat cocked back
+
+    const oCanvas = document.getElementById("pitcher-sprite-canvas");
+    const oCtx = oCanvas.getContext("2d");
+    oCtx.clearRect(0, 0, 96, 96);
+    // Draw front-facing pitcher
+    oCtx.fillStyle = "#f85149";
+    oCtx.fillRect(32, 10, 32, 24); // Cap
+    oCtx.fillStyle = "#dfa070";
+    oCtx.fillRect(36, 24, 24, 18); // Face
+    oCtx.fillStyle = "#21262d";
+    oCtx.fillRect(24, 42, 48, 38); // Rival Jersey
+    oCtx.fillStyle = "#8a5d3b";
+    oCtx.fillRect(16, 48, 14, 14); // Glove
+}
+
+function updateBattleHUD() {
+    document.getElementById("opp-hp").style.width = `${battleState.oppHp}%`;
+    document.getElementById("player-hp").style.width = `${player.energy}%`;
+    document.getElementById("count-display").innerText = `Count: ${battleState.balls} - ${battleState.strikes}`;
+}
+
+function showBattleLog(text) {
+    const log = document.getElementById("battle-log");
+    const grid = document.getElementById("battle-btn-grid");
+    grid.style.display = "none";
+    log.style.display = "block";
+    log.innerText = text;
+
+    setTimeout(() => {
+        if (battleState.active) {
+            grid.style.display = "grid";
+            log.style.display = "none";
         }
-        player.energy -= 20;
-        currentPA = 1;
-        startAtBat();
-    }
+    }, 1200);
+}
 
-    function startAtBat() {
-        currentCount = { b: 0, s: 0 };
-        const modal = document.getElementById("interaction-modal");
-        modal.style.display = "block";
-        renderAtBatUI();
-    }
+function battleAction(action) {
+    if (!battleState.active) return;
+    const diff = TIERS[player.tier].pitchDiff;
 
-    function renderAtBatUI() {
-        const diff = TIERS[player.tierIdx].difficulty;
-        document.getElementById("modal-heading").innerText = `Plate Appearance ${currentPA}/3 (vs. ${TIERS[player.tierIdx].name} - OVR ${diff})`;
-
-        document.getElementById("modal-body").innerHTML = `
-            <div class="pitch-box">Count: ${currentCount.b} - ${currentCount.s}</div>
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-                <button class="btn" onclick="swing(1)">Contact Swing</button>
-                <button class="btn" onclick="swing(2)">Power Swing</button>
-                <button class="btn" onclick="takePitch()">Take Pitch</button>
-            </div>
-        `;
-    }
-
-    function takePitch() {
-        const diff = TIERS[player.tierIdx].difficulty;
-        let inZone = Math.random() < 0.62;
-
+    if (action === "take") {
+        const inZone = Math.random() < 0.60;
         if (!inZone) {
-            let eyeRoll = player.discipline + (Math.random() * 25);
-            if (eyeRoll > (diff * 0.70)) {
-                currentCount.b++;
-                logMessage("Good take off the corner. Ball!", "log-event");
-            } else {
-                currentCount.s++;
-                logMessage("Chased a slider out of the zone! Strike.", "log-bad");
-            }
+            battleState.balls++;
+            showBattleLog("Great eye! Ball outside the strike zone.");
         } else {
-            currentCount.s++;
-            logMessage("Called strike on the edge.", "log-bad");
+            battleState.strikes++;
+            showBattleLog("Called strike right down the heart!");
         }
+    } else if (action === "contact" || action === "power") {
+        const isPower = action === "power";
+        const stat = isPower ? player.power : player.contact;
+        const roll = stat + Math.floor(Math.random() * 40) - (isPower ? 18 : 6);
 
-        checkCount();
-    }
-
-    function swing(type) {
-        const diff = TIERS[player.tierIdx].difficulty;
-        let isPower = type === 2;
-        let stat = isPower ? player.power : player.contact;
-        let penalty = isPower ? 18 : 5;
-
-        let roll = stat + (Math.random() * 40) - penalty;
-        let inZone = Math.random() < 0.65;
-        if (!inZone) roll -= 20;
-
-        let pitchQuality = diff + (Math.random() * 24 - 12);
-
-        if (roll < pitchQuality) {
-            currentCount.s++;
-            logMessage("Whiff! Swung through the pitch.", "log-bad");
-            checkCount();
+        if (roll < diff) {
+            battleState.strikes++;
+            showBattleLog("Swing and a miss! Whiffed on the breaking ball.");
         } else {
-            // Ball in play
-            player.ab++;
-            let hitRoll = roll - pitchQuality + (Math.random() * 30);
-
-            if (isPower && hitRoll > 32) {
-                player.hits++;
-                player.hrs++;
-                let rbis = Math.floor(Math.random() * 3) + 1;
-                player.rbi += rbis;
-                player.progress += 45;
-                player.hype += 15;
-                logMessage(`🔥 CRUSHED TO DEAD CENTER! HOME RUN! (+${rbis} RBI)`, "log-good");
-            } else if (hitRoll > 18) {
-                player.hits++;
-                let rbis = Math.floor(Math.random() * 2);
-                player.rbi += rbis;
-                player.progress += 25;
-                player.hype += 8;
-                logMessage("⚾ Driven into the gap for extra bases!", "log-good");
-            } else if (hitRoll >= 4) {
-                player.hits++;
-                player.progress += 15;
-                player.hype += 4;
-                logMessage("⚾ Single through the hole in the infield.", "log-good");
-            } else {
-                logMessage("Routine ground ball to short. Thrown out.", "log-event");
-            }
-            advancePA();
+            const damage = isPower ? 55 : 30;
+            battleState.oppHp = Math.max(0, battleState.oppHp - damage);
+            const hitType = isPower ? "CRUSHED extra-base missile!" : "Sharp lined single!";
+            showBattleLog(`${hitType} Rival pitcher's composure drops!`);
+        }
+    } else if (action === "bunt") {
+        if (player.speed > 55) {
+            battleState.oppHp = Math.max(0, battleState.oppHp - 35);
+            showBattleLog("Perfect drag bunt down the third base line! Safe!");
+        } else {
+            battleState.strikes++;
+            showBattleLog("Popped up the bunt into foul territory. Strike!");
         }
     }
 
-    function checkCount() {
-        if (currentCount.b >= 4) {
-            player.ab++;
-            player.walks++;
-            player.progress += 12;
-            player.hype += 2;
-            logMessage("Ball four! Drew the walk.", "log-good");
-            advancePA();
-        } else if (currentCount.s >= 3) {
-            player.ab++;
-            player.hype = Math.max(0, player.hype - 3);
-            logMessage("Strike three! Down on strikes.", "log-bad");
-            advancePA();
-        } else {
-            renderAtBatUI();
-        }
-    }
+    updateBattleHUD();
+    checkBattleEnd();
+}
 
-    function advancePA() {
-        currentPA++;
-        if (currentPA <= 3) {
-            startAtBat();
-        } else {
-            // Simulate fielding play
-            let diff = TIERS[player.tierIdx].difficulty;
-            let fldCheck = player.fielding + (player.speed / 2) + (Math.random() * 25);
-            if (fldCheck > diff) {
-                player.stops++;
-                player.progress += 15;
-                player.hype += 5;
-                logMessage("🧤 Web Gem! Diving stop and throw across the diamond!", "log-good");
-            }
-            closeModal();
-            updateUI();
-        }
-    }
+function checkBattleEnd() {
+    if (battleState.oppHp <= 0) {
+        battleState.active = false;
+        player.xp += 40;
+        player.wins++;
+        showBattleLog("💥 KNOCKOUT HIT! You dominated the at-bat!");
 
-    function closeModal() {
-        document.getElementById("interaction-modal").style.display = "none";
-    }
+        setTimeout(() => {
+            document.getElementById("battle-ui").style.display = "none";
+            gameState = "OVERWORLD";
+            checkPromotionCallUp();
+        }, 1500);
+    } else if (battleState.strikes >= 3) {
+        battleState.active = false;
+        player.energy = Math.max(10, player.energy - 15);
+        showBattleLog("STRIKE THREE! Down on strikes. Take a breath.");
 
-    window.onload = function() {
-        selectArchetype(1);
-    };
+        setTimeout(() => {
+            document.getElementById("battle-ui").style.display = "none";
+            gameState = "OVERWORLD";
+        }, 1500);
+    } else if (battleState.balls >= 4) {
+        battleState.active = false;
+        player.xp += 25;
+        showBattleLog("BALL FOUR! Drew the walk and earned coach praise.");
+
+        setTimeout(() => {
+            document.getElementById("battle-ui").style.display = "none";
+            gameState = "OVERWORLD";
+            checkPromotionCallUp();
+        }, 1500);
+    }
+}
+
+function checkPromotionCallUp() {
+    const currentTier = TIERS[player.tier];
+    if (player.xp >= currentTier.reqXp && player.tier < TIERS.length - 1) {
+        player.tier++;
+        player.energy = 100;
+        triggerDialogue({
+            name: "Front Office GM",
+            lines: [
+                "🚨 PACK YOUR BAGS, KID!",
+                `You have proved everything at this level. You are being called up to ${TIERS[player.tier].name}!`,
+                "Tougher pitchers await. Keep working your counts!"
+            ]
+        });
+    }
+}
+
+/* --- MAIN GAME LOOP --- */
+function loop() {
+    updateOverworld();
+    drawOverworld();
+    requestAnimationFrame(loop);
+}
+
+loop();
 </script>
 </body>
 </html>
