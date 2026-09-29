@@ -1,490 +1,790 @@
-import java.util.Random;
-import java.util.Scanner;
-
-public class Main {
-
-    static class Tier {
-        String name;
-        int threshold;
-        int pitcherDifficulty;
-
-        Tier(String name, int threshold, int pitcherDifficulty) {
-            this.name = name;
-            this.threshold = threshold;
-            this.pitcherDifficulty = pitcherDifficulty;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLB Road to Cooperstown: Career RPG</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
         }
-    }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #161b22;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            border: 1px solid #30363d;
+        }
+        h1, h2 {
+            color: #00cecb;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+        .hud-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #0d1117;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .hud-item {
+            text-align: center;
+            font-size: 0.9em;
+            color: #8b949e;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .hud-item span {
+            display: block;
+            font-size: 1.4em;
+            color: #00cecb;
+            margin-top: 4px;
+        }
+        .hud-item span.danger {
+            color: #f85149;
+        }
+        .action-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        @media (max-width: 768px) {
+            .action-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .btn {
+            background: #21262d;
+            border: 2px solid #30363d;
+            color: #fff;
+            padding: 14px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .btn:hover:not(:disabled) {
+            background: #30363d;
+            border-color: #00cecb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,206,203,0.25);
+        }
+        .btn.primary {
+            background: #00cecb;
+            color: #0d1117;
+            border-color: #00cecb;
+        }
+        .btn.primary:hover:not(:disabled) {
+            background: #00b4b1;
+        }
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .pixel-portrait {
+            display: grid;
+            grid-template-columns: repeat(8, 6px);
+            grid-template-rows: repeat(8, 6px);
+            width: 48px;
+            height: 48px;
+            margin: 10px auto;
+            image-rendering: pixelated;
+        }
+        .p-block {
+            width: 6px;
+            height: 6px;
+        }
+        .tier-card {
+            background: linear-gradient(135deg, #1b263b, #0d1b2a);
+            border: 2px dashed #e3b341;
+            border-radius: 8px;
+            padding: 14px 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .tier-title {
+            color: #e3b341;
+            font-weight: 900;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tier-desc {
+            color: #c9d1d9;
+            font-size: 0.9em;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        @media (max-width: 900px) {
+            .card-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .stat-card {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px 6px;
+            text-align: center;
+        }
+        .stat-val {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #00cecb;
+            margin-top: 4px;
+        }
+        .stat-lbl {
+            font-size: 0.75em;
+            color: #8b949e;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.7em;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+        .badge.pwr { background: #f85149; color: #fff; }
+        .badge.cnt { background: #e3b341; color: #000; }
+        .badge.spd { background: #a371f7; color: #fff; }
+        .badge.eye { background: #2ea043; color: #fff; }
+        .badge.fld { background: #1f6feb; color: #fff; }
 
-    static final Tier[] TIERS = {
-        new Tier("Rookie Ball / Single-A", 120, 45),
-        new Tier("High-A Ball", 240, 58),
-        new Tier("Double-A (Prospect Central)", 400, 70),
-        new Tier("Triple-A (Taxi Squad)", 600, 82),
-        new Tier("The Show: Major Leagues", 900, 92),
-        new Tier("MLB All-Star & Legend", 9999, 98)
+        .game-modal {
+            background: #0d1117;
+            border: 2px solid #00cecb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(0, 206, 203, 0.25);
+        }
+        .modal-title {
+            color: #e3b341;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .pitch-box {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            color: #00cecb;
+        }
+        .log-feed {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px;
+            height: 140px;
+            overflow-y: auto;
+            font-size: 0.88em;
+            line-height: 1.5;
+            color: #c9d1d9;
+            margin-top: 15px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .log-entry { margin-bottom: 4px; }
+        .log-good { color: #2ea043; font-weight: bold; }
+        .log-bad { color: #f85149; }
+        .log-event { color: #e3b341; }
+
+        .progress-bar-container {
+            background: #21262d;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            margin-top: 8px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1f6feb, #00cecb);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>MLB Road to Cooperstown</h1>
+    <p class="subtitle">Guide your drafted prospect through the Minor League ranks to Cooperstown immortality.</p>
+
+    <!-- Setup Wizard -->
+    <div id="setup-section" class="game-modal">
+        <div class="modal-title">Prospect Draft Central</div>
+        <p style="color:#c9d1d9; font-size:0.9em;">Create your prospect and choose an amateur player archetype:</p>
+        
+        <div style="display:flex; gap:15px; flex-wrap:wrap; margin:15px 0;">
+            <input type="text" id="input-name" placeholder="Prospect Name (e.g. Kid Carter)" style="background:#21262d; border:1px solid #30363d; color:#fff; padding:10px 14px; border-radius:6px; flex:1; min-width:200px; font-size:1em;">
+            <select id="input-pos" style="background:#21262d; border:1px solid #30363d; color:#00cecb; padding:10px 14px; border-radius:6px; font-weight:bold; font-size:1em;">
+                <option value="SS">Shortstop (SS)</option>
+                <option value="CF">Center Field (CF)</option>
+                <option value="3B">Third Base (3B)</option>
+                <option value="C">Catcher (C)</option>
+                <option value="1B">First Base (1B)</option>
+                <option value="RF">Right Field (RF)</option>
+            </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin: 15px 0;">
+            <button class="btn" onclick="selectArchetype(1)" id="arch-1">
+                <strong>College Slugger</strong><br>
+                <span style="font-size:0.75em; color:#8b949e;">High Power / High Bonus</span>
+            </button>
+            <button class="btn" onclick="selectArchetype(2)" id="arch-2">
+                <strong>Prep 5-Tool Phenom</strong><br>
+                <span style="font-size:0.75em; color:#8b949e;">Elite Speed & Upside</span>
+            </button>
+            <button class="btn" onclick="selectArchetype(3)" id="arch-3">
+                <strong>Late-Round Grinder</strong><br>
+                <span style="font-size:0.75em; color:#8b949e;">High Contact & Glove</span>
+            </button>
+        </div>
+
+        <button class="btn primary" style="width:100%; margin-top:10px;" onclick="startGame()">Sign Contract & Enter System</button>
+    </div>
+
+    <!-- Main Game Interface (Hidden initially) -->
+    <div id="gameplay-section" style="display: none;">
+        
+        <div class="tier-card">
+            <div>
+                <div class="tier-title" id="tier-name">Single-A Ball</div>
+                <div class="tier-desc" id="tier-desc">Promotion Target: 150 Progress Points</div>
+            </div>
+            <div style="min-width: 220px;">
+                <div style="font-size: 0.8em; color: #8b949e; text-align: right;">Progress to Next Tier</div>
+                <div class="progress-bar-container">
+                    <div id="prog-fill" class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUD Bar -->
+        <div class="hud-bar">
+            <div class="hud-item">Energy <span id="hud-energy">100%</span></div>
+            <div class="hud-item">Hype Level <span id="hud-hype">15</span></div>
+            <div class="hud-item">Career Bank <span id="hud-cash">$50,000</span></div>
+            <div class="hud-item">Season Record <span id="hud-record">0-0 (.000)</span></div>
+            <div class="hud-item">HR / RBI <span id="hud-power">0 / 0</span></div>
+        </div>
+
+        <div style="text-align: center;" id="portrait-slot"></div>
+        <h2 id="hud-player-title" style="margin-top:0;">Player Card</h2>
+
+        <!-- Scouting 20-80 Scale Stats -->
+        <div class="card-grid">
+            <div class="stat-card">
+                <div class="stat-lbl">Contact</div>
+                <div class="stat-val" id="val-cnt">45</div>
+                <span class="badge cnt">CNT</span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Power</div>
+                <div class="stat-val" id="val-pwr">40</div>
+                <span class="badge pwr">PWR</span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Plate Eye</div>
+                <div class="stat-val" id="val-eye">40</div>
+                <span class="badge eye">DISC</span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Speed</div>
+                <div class="stat-val" id="val-spd">50</div>
+                <span class="badge spd">SPD</span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Defense</div>
+                <div class="stat-val" id="val-fld">45</div>
+                <span class="badge fld">GLOVE</span>
+            </div>
+        </div>
+
+        <!-- Career Action Dashboard -->
+        <div class="action-panel">
+            <button class="btn primary" onclick="openGameModal()">⚾ Play Game Day (-20 Energy)</button>
+            <button class="btn" onclick="openTrainingModal()">🏋️ Training Facility (-25 Energy)</button>
+            <button class="btn" onclick="triggerClubEvent()">💼 Off-Field Event (-10 Energy)</button>
+            <button class="btn" onclick="triggerRest()">🛌 Rest & Cryo (+45 Energy)</button>
+        </div>
+
+        <!-- Interactive Event / Simulation Modal -->
+        <div id="interaction-modal" class="game-modal" style="display: none;">
+            <div class="modal-title" id="modal-heading">Interactive Event</div>
+            <div id="modal-body"></div>
+        </div>
+
+        <!-- Event Log Feed -->
+        <div class="log-feed" id="game-feed">
+            <div class="log-entry log-event">Draft Day complete. Welcome to the organization!</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TIERS = [
+        { name: "Single-A Ball", target: 140, difficulty: 45 },
+        { name: "High-A Ball", target: 300, difficulty: 58 },
+        { name: "Double-A (Prospect Central)", target: 500, difficulty: 70 },
+        { name: "Triple-A (Taxi Squad)", target: 750, difficulty: 82 },
+        { name: "The Show: Major Leagues", target: 1100, difficulty: 91 },
+        { name: "MLB All-Star & Legend", target: 99999, difficulty: 98 }
+    ];
+
+    let player = {
+        name: "Marcus Vance",
+        pos: "SS",
+        arch: 1,
+        tierIdx: 0,
+        energy: 100,
+        hype: 15,
+        cash: 50000,
+        progress: 0,
+        // Ratings
+        contact: 45,
+        power: 40,
+        discipline: 40,
+        speed: 50,
+        fielding: 45,
+        // Stats
+        ab: 0,
+        hits: 0,
+        hrs: 0,
+        rbi: 0,
+        walks: 0,
+        stops: 0
     };
 
-    static class Player {
-        String name;
-        String position;
-        String draftStory;
-        int draftRound;
+    let selectedArch = 1;
 
-        // Ratings (20-80 Scouting Scale)
-        int contact;
-        int power;
-        int discipline;
-        int speed;
-        int fielding;
+    function render8BitFaceHTML(name) {
+        let seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const skinColors = ["#dfa070", "#c68a5c", "#a0653d", "#eec590", "#f5d0b0"];
+        const hairColors = ["#000000", "#4a2306", "#9a3300", "#d8b020", "#666666"];
+        const capColors = ["#0c2340", "#ba0c2f", "#005a9c", "#005c5c", "#ff5910", "#003831"];
 
-        // Career / Lifecycle
-        int energy = 100;
-        int hype = 15;
-        int bankroll = 5000;
-        int overallPoints = 0;
-        int tierIdx = 0;
+        let skin = skinColors[seed % skinColors.length];
+        let hair = hairColors[(seed >> 2) % hairColors.length];
+        let cap = capColors[(seed >> 4) % capColors.length];
+        let bg = "rgba(0,0,0,0.15)";
 
-        // Stats
-        int atBats = 0;
-        int careerHits = 0;
-        int careerHrs = 0;
-        int careerRbi = 0;
-        int careerWalks = 0;
-        int defensiveStops = 0;
-
-        Player(String name, String position, int archetype) {
-            this.name = name;
-            this.position = position;
-            applyArchetype(archetype);
-        }
-
-        private void applyArchetype(int choice) {
-            switch (choice) {
-                case 1:
-                    this.draftStory = "D1 College Slugger (1st Round Pick)";
-                    this.draftRound = 1;
-                    this.contact = 50;
-                    this.power = 65;
-                    this.discipline = 45;
-                    this.speed = 38;
-                    this.fielding = 45;
-                    this.bankroll = 150000;
-                    this.hype = 40;
-                    break;
-                case 2:
-                    this.draftStory = "High School Phenom (Tools & Speed)";
-                    this.draftRound = 2;
-                    this.contact = 42;
-                    this.power = 48;
-                    this.discipline = 38;
-                    this.speed = 70;
-                    this.fielding = 55;
-                    this.bankroll = 85000;
-                    this.hype = 30;
-                    break;
-                case 3:
-                default:
-                    this.draftStory = "Undrafted Senior Sign / Late-Round Sleeper";
-                    this.draftRound = 18;
-                    this.contact = 55;
-                    this.power = 38;
-                    this.discipline = 60;
-                    this.speed = 48;
-                    this.fielding = 60;
-                    this.bankroll = 10000;
-                    this.hype = 10;
-                    break;
+        let html = '<div class="pixel-portrait">';
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                let color = bg;
+                if (r <= 2 && c >= 2 && c <= 5) color = cap;
+                else if (r === 2 && (c === 1 || c === 6)) color = hair;
+                else if (r >= 3 && r <= 5 && c >= 2 && c <= 5) color = skin;
+                else if (r >= 6) color = cap;
+                html += `<div class="p-block" style="background:${color}"></div>`;
             }
         }
-
-        String getCurrentTier() {
-            return TIERS[this.tierIdx].name;
-        }
-
-        double getBattingAvg() {
-            return (this.atBats > 0) ? ((double) this.careerHits / this.atBats) : 0.0;
-        }
-
-        boolean checkPromotion() {
-            if (this.tierIdx < TIERS.length - 1) {
-                int req = TIERS[this.tierIdx].threshold;
-                if (this.overallPoints >= req) {
-                    this.tierIdx++;
-                    printDivider();
-                    System.out.println("🚨 FRONT OFFICE CALL-UP!");
-                    System.out.println("The GM called your hotel room. Pack your bags for: " + getCurrentTier() + "!");
-                    printDivider();
-                    this.hype += 15;
-                    this.energy = Math.min(100, this.energy + 20);
-                    return true;
-                }
-            }
-            return false;
-        }
+        html += '</div>';
+        return html;
     }
 
-    private static final Random rng = new Random();
-    private static final Scanner scanner = new Scanner(System.in);
+    function selectArchetype(id) {
+        selectedArch = id;
+        document.querySelectorAll('[id^="arch-"]').forEach(btn => btn.style.borderColor = "#30363d");
+        document.getElementById(`arch-${id}`).style.borderColor = "#00cecb";
+    }
 
-    public static void main(String[] args) {
-        printDivider();
-        System.out.println("       ROAD TO COOPERSTOWN: AN MLB CAREER RPG       ");
-        printDivider();
+    function startGame() {
+        let nameInput = document.getElementById("input-name").value.trim();
+        if (nameInput) player.name = nameInput;
+        player.pos = document.getElementById("input-pos").value;
 
-        System.out.print("Enter prospect name (Default: Marcus Vance): ");
-        String name = scanner.nextLine().trim();
-        if (name.isEmpty()) name = "Marcus Vance";
+        if (selectedArch === 1) {
+            player.contact = 48; player.power = 65; player.discipline = 42; player.speed = 40; player.fielding = 45;
+            player.cash = 150000; player.hype = 40;
+        } else if (selectedArch === 2) {
+            player.contact = 42; player.power = 48; player.discipline = 38; player.speed = 70; player.fielding = 55;
+            player.cash = 80000; player.hype = 25;
+        } else {
+            player.contact = 55; player.power = 38; player.discipline = 58; player.speed = 48; player.fielding = 60;
+            player.cash = 15000; player.hype = 10;
+        }
 
-        System.out.print("Enter position (e.g., SS, CF, 3B, 2B - Default: SS): ");
-        String pos = scanner.nextLine().trim().toUpperCase();
-        if (pos.isEmpty()) pos = "SS";
+        document.getElementById("setup-section").style.display = "none";
+        document.getElementById("gameplay-section").style.display = "block";
+        updateUI();
+        logMessage(`Signed professional contract! Assigned to ${TIERS[0].name}.`, "log-event");
+    }
 
-        System.out.println("\nSelect your Draft Background:");
-        System.out.println("1. College Power Hitter (High Power/Hype, High Expectations)");
-        System.out.println("2. 5-Tool High School Phenom (Elite Speed & Upside, Raw Eye)");
-        System.out.println("3. Grinder / Defensive Specialist (High Contact/Eye/Glove, Low Hype)");
-        System.out.print("Background > ");
-        String bgChoice = scanner.nextLine().trim();
-        int arch = 3;
-        if (bgChoice.equals("1")) arch = 1;
-        else if (bgChoice.equals("2")) arch = 2;
+    function logMessage(msg, cls = "") {
+        const feed = document.getElementById("game-feed");
+        const entry = document.createElement("div");
+        entry.className = `log-entry ${cls}`;
+        entry.innerHTML = `> ${msg}`;
+        feed.prepend(entry);
+    }
 
-        Player player = new Player(name, pos, arch);
+    function updateUI() {
+        const currentTier = TIERS[player.tierIdx];
+        document.getElementById("tier-name").innerText = currentTier.name;
+        document.getElementById("tier-desc").innerText = `Promotion Target: ${currentTier.target} XP Points`;
 
-        System.out.println("\n[DRAFT DAY RESULT]");
-        System.out.println("With the selection, the franchise drafts " + player.name + " (" + player.draftStory + ")!");
-        System.out.println("Signing Bonus Deposited: $" + String.format("%,d", player.bankroll));
+        let prevReq = player.tierIdx > 0 ? TIERS[player.tierIdx - 1].target : 0;
+        let pct = Math.min(100, Math.max(0, ((player.progress - prevReq) / (currentTier.target - prevReq)) * 100));
+        document.getElementById("prog-fill").style.width = `${pct}%`;
 
-        boolean running = true;
-        while (running) {
-            if (player.tierIdx >= TIERS.length - 1 && player.overallPoints >= 1200) {
-                System.out.println("\n************************************************************");
-                System.out.println("HALL OF FAME INDUCTION! " + player.name + " is a Cooperstown Legend!");
-                System.out.println("************************************************************");
-                showStatus(player);
-                break;
-            }
+        document.getElementById("hud-energy").innerText = `${player.energy}%`;
+        document.getElementById("hud-energy").className = player.energy < 25 ? "danger" : "";
+        document.getElementById("hud-hype").innerText = player.hype;
+        document.getElementById("hud-cash").innerText = `$${player.cash.toLocaleString()}`;
 
-            showStatus(player);
-            System.out.println("\nCAREER ACTIONS:");
-            System.out.println("1. Play Series Game (-20 Energy)");
-            System.out.println("2. Target Training (-25 Energy)");
-            System.out.println("3. Club Life / Off-Field Decision (-10 Energy)");
-            System.out.println("4. Full Recovery (Rest & Ice Bath)");
-            System.out.println("5. Retire");
-            System.out.print("\nCommand > ");
+        let avg = player.ab > 0 ? (player.hits / player.ab).toFixed(3).replace(/^0/, '') : '.000';
+        document.getElementById("hud-record").innerText = `${player.hits}-${player.ab} (${avg})`;
+        document.getElementById("hud-power").innerText = `${player.hrs} / ${player.rbi}`;
 
-            String choice = scanner.nextLine().trim();
-            switch (choice) {
-                case "1":
-                    playGame(player);
-                    break;
-                case "2":
-                    train(player);
-                    break;
-                case "3":
-                    offFieldEvent(player);
-                    break;
-                case "4":
-                    rest(player);
-                    break;
-                case "5":
-                    System.out.println("\n" + player.name + " voluntarily retired to the broadcast booth.");
-                    running = false;
-                    break;
-                default:
-                    System.out.println("Invalid option.");
+        document.getElementById("portrait-slot").innerHTML = render8BitFaceHTML(player.name);
+        document.getElementById("hud-player-title").innerText = `${player.name} (${player.pos})`;
+
+        document.getElementById("val-cnt").innerText = player.contact;
+        document.getElementById("val-pwr").innerText = player.power;
+        document.getElementById("val-eye").innerText = player.discipline;
+        document.getElementById("val-spd").innerText = player.speed;
+        document.getElementById("val-fld").innerText = player.fielding;
+
+        checkPromotion();
+    }
+
+    function checkPromotion() {
+        if (player.tierIdx < TIERS.length - 1) {
+            if (player.progress >= TIERS[player.tierIdx].target) {
+                player.tierIdx++;
+                player.hype += 20;
+                player.energy = Math.min(100, player.energy + 25);
+                logMessage(`🚨 CALL-UP ALERT! You've been promoted to ${TIERS[player.tierIdx].name}!`, "log-good");
+                updateUI();
             }
         }
     }
 
-    private static void printDivider() {
-        System.out.println("============================================================");
-    }
-
-    private static void showStatus(Player p) {
-        int avgInt = (int) Math.round(p.getBattingAvg() * 1000);
-        String avgStr = String.format(".%03d", avgInt);
-
-        printDivider();
-        System.out.println("NAME: " + p.name + " | POS: " + p.position + " | TIER: " + p.getCurrentTier());
-        System.out.println("ENERGY: " + p.energy + "/100 | HYPE: " + p.hype + " | CASH: $" + String.format("%,d", p.bankroll) + " | XP: " + p.overallPoints);
-        System.out.println("RATINGS: CON: " + p.contact + " | PWR: " + p.power + " | EYE: " + p.discipline + " | SPD: " + p.speed + " | FLD: " + p.fielding);
-        System.out.println("STATS:   " + p.careerHits + "-" + p.atBats + " (" + avgStr + ") | HR: " + p.careerHrs + " | RBI: " + p.careerRbi + " | BB: " + p.careerWalks + " | PLAYS: " + p.defensiveStops);
-        printDivider();
-    }
-
-    private static void train(Player p) {
-        if (p.energy < 25) {
-            System.out.println("\nTraining staff won't clear you. You are red-lining on fatigue! Rest up.");
+    // --- Training Modal ---
+    function openTrainingModal() {
+        if (player.energy < 25) {
+            logMessage("Training staff rejected you: Energy is too low! Rest first.", "log-bad");
             return;
         }
+        const modal = document.getElementById("interaction-modal");
+        modal.style.display = "block";
+        document.getElementById("modal-heading").innerText = "Player Development Facility";
 
-        System.out.println("\nSELECT INSTRUCTION DRILL:");
-        System.out.println("1. Hit Trax Cage Work (+Contact, +XP)");
-        System.out.println("2. Heavy Bat & Power Mechanics (+Power, -1 Speed risk)");
-        System.out.println("3. Pitch Recognition / VR Sim (+Discipline, +XP)");
-        System.out.println("4. Agility & Base Running (+Speed)");
-        System.out.println("5. Infield/Outfield Glove Work (+Fielding, +XP)");
-        System.out.print("> ");
-
-        String choice = scanner.nextLine().trim();
-        p.energy -= 25;
-
-        switch (choice) {
-            case "1": {
-                int gain = rng.nextInt(3) + 2;
-                p.contact += gain;
-                p.overallPoints += 15;
-                System.out.println("Refined your barrel delivery. Contact +" + gain + "!");
-                break;
-            }
-            case "2": {
-                int gain = rng.nextInt(4) + 2;
-                p.power += gain;
-                if (rng.nextDouble() < 0.25 && p.speed > 35) {
-                    p.speed -= 1;
-                    System.out.println("Mass gained! Power +" + gain + ", but speed dropped by 1.");
-                } else {
-                    System.out.println("Driving balls out of the yard! Power +" + gain + "!");
-                }
-                p.overallPoints += 15;
-                break;
-            }
-            case "3": {
-                int gain = rng.nextInt(3) + 3;
-                p.discipline += gain;
-                p.overallPoints += 20;
-                System.out.println("Recognizing arm slots and release points. Discipline +" + gain + "!");
-                break;
-            }
-            case "4": {
-                int gain = rng.nextInt(3) + 2;
-                p.speed += gain;
-                p.overallPoints += 12;
-                System.out.println("Shaved time off your 60-yard dash. Speed +" + gain + "!");
-                break;
-            }
-            case "5": {
-                int gain = rng.nextInt(3) + 2;
-                p.fielding += gain;
-                p.overallPoints += 15;
-                System.out.println("Soft hands on tough hops. Fielding +" + gain + "!");
-                break;
-            }
-            default:
-                System.out.println("Indecision led to wasted reps. Energy consumed.");
-        }
+        document.getElementById("modal-body").innerHTML = `
+            <p style="color:#c9d1d9;">Select workout focus (-25 Energy):</p>
+            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
+                <button class="btn" onclick="executeTraining('cnt')">Cage Work (+Contact, +XP)</button>
+                <button class="btn" onclick="executeTraining('pwr')">Weight Room (+Power, -Speed risk)</button>
+                <button class="btn" onclick="executeTraining('eye')">VR Tunnels (+Discipline, +XP)</button>
+                <button class="btn" onclick="executeTraining('spd')">Burst Drills (+Speed)</button>
+            </div>
+            <button class="btn" style="width:100%; margin-top:12px;" onclick="closeModal()">Back to Locker Room</button>
+        `;
     }
 
-    private static void rest(Player p) {
-        int restored = rng.nextInt(20) + 35;
-        p.energy = Math.min(100, p.energy + restored);
-        System.out.println("\nFull recovery day. Cryotherapy, massage, and 10 hours sleep. Energy is now " + p.energy + "%.");
-    }
-
-    private static void offFieldEvent(Player p) {
-        if (p.energy < 10) {
-            System.out.println("\nToo exhausted to do anything but sleep.");
-            return;
-        }
-        p.energy -= 10;
-
-        int eventType = rng.nextInt(4);
-        switch (eventType) {
-            case 0:
-                System.out.println("\n[SPONSOR EVENT] A local glove company offers a micro-deal.");
-                System.out.println("1. Sign contract (+$2,500, +5 Hype)");
-                System.out.println("2. Decline to preserve independent brand");
-                System.out.print("> ");
-                if (scanner.nextLine().trim().equals("1")) {
-                    p.bankroll += 2500;
-                    p.hype += 5;
-                    System.out.println("Deal signed! Custom leather arrives next week.");
-                } else {
-                    System.out.println("You bet on bigger deals coming later.");
-                }
-                break;
-            case 1:
-                System.out.println("\n[TEAM NIGHT] Veterans invite you to a late steakhouse dinner.");
-                System.out.println("1. Go bond (-15 Energy, +10 Hype, +Team Chemistry)");
-                System.out.println("2. Stay at team hotel and review scouting reports (+Eye)");
-                System.out.print("> ");
-                if (scanner.nextLine().trim().equals("1")) {
-                    p.energy = Math.max(0, p.energy - 15);
-                    p.hype += 10;
-                    p.overallPoints += 10;
-                    System.out.println("Locker room respect earned. Veterans have your back.");
-                } else {
-                    p.discipline += 2;
-                    System.out.println("Early night. Extra film logged. Eye +2.");
-                }
-                break;
-            case 2:
-                System.out.println("\n[MEDIA SPOTLIGHT] A national baseball podcast invites you on.");
-                System.out.println("1. Give a bold, cocky interview (+15 Hype, -5 Discipline)");
-                System.out.println("2. Give a humble, team-first interview (+5 Hype, +10 XP)");
-                System.out.print("> ");
-                if (scanner.nextLine().trim().equals("1")) {
-                    p.hype += 15;
-                    p.discipline = Math.max(20, p.discipline - 5);
-                    System.out.println("The clip went viral on social media! High expectations follow.");
-                } else {
-                    p.hype += 5;
-                    p.overallPoints += 10;
-                    System.out.println("The front office praised your maturity.");
-                }
-                break;
-            case 3:
-            default:
-                System.out.println("\n[ANALYTICS MEETING] The team's data department offers a swing breakdown.");
-                System.out.println("Spend $1,000 for independent biomechanics consult? (1 = Yes / 2 = No)");
-                System.out.print("> ");
-                if (scanner.nextLine().trim().equals("1") && p.bankroll >= 1000) {
-                    p.bankroll -= 1000;
-                    p.contact += 2;
-                    p.power += 2;
-                    System.out.println("The data unlocked 1.5 mph more bat speed! Contact +2, Power +2.");
-                } else {
-                    System.out.println("You trust your natural instincts.");
-                }
-                break;
-        }
-    }
-
-    private static void simulateAtBat(Player p) {
-        int diff = TIERS[p.tierIdx].pitcherDifficulty;
-        int balls = 0;
-        int strikes = 0;
-
-        System.out.println("\n--- Stepping into the box vs. " + p.getCurrentTier() + " Pitching (OVR " + diff + ") ---");
-
-        while (strikes < 3 && balls < 4) {
-            // Pitch details
-            int pitchTypeRoll = rng.nextInt(3);
-            String pitchName = (pitchTypeRoll == 0) ? "4-Seam Fastball (97 mph)" : (pitchTypeRoll == 1) ? "Sharp Slider" : "Circle Changeup";
-            boolean pitchInZone = rng.nextDouble() < 0.62;
-            int pitchQuality = diff + (rng.nextInt(26) - 13);
-
-            System.out.println("\nCount: [" + balls + "-" + strikes + "] | Pitcher winds up...");
-            System.out.println("1. Contact Swing (Protects plate, higher average)");
-            System.out.println("2. Power Swing (Riskier, looking for extra bases)");
-            System.out.println("3. Take Pitch (Work the count / test discipline)");
-            System.out.print("Your Approach > ");
-
-            String approach = scanner.nextLine().trim();
-
-            if (approach.equals("3")) {
-                if (!pitchInZone) {
-                    int eyeCheck = p.discipline + rng.nextInt(25);
-                    if (eyeCheck > (diff * 0.70)) {
-                        System.out.println(">> Pitch: " + pitchName + " off the plate. Good eye! Ball " + (balls + 1));
-                        balls++;
-                    } else {
-                        System.out.println(">> Pitch: " + pitchName + " darting outside. You chased it! Strike " + (strikes + 1));
-                        strikes++;
-                    }
-                } else {
-                    System.out.println(">> Pitch: " + pitchName + " painted on the edge. Called strike " + (strikes + 1));
-                    strikes++;
-                }
-            } else if (approach.equals("1") || approach.equals("2")) {
-                boolean isPower = approach.equals("2");
-                int statMod = isPower ? p.power : p.contact;
-                int penalty = isPower ? 18 : 6;
-
-                int roll = statMod + (rng.nextInt(38) + 1) - penalty;
-                if (!pitchInZone) roll -= 20;
-
-                if (roll < pitchQuality) {
-                    System.out.println(">> Pitch: " + pitchName + ". You swung through it! Strike " + (strikes + 1));
-                    strikes++;
-                } else {
-                    p.atBats++;
-                    int outcomeRoll = roll - pitchQuality + (rng.nextInt(30) + 1);
-
-                    if (isPower && outcomeRoll > 32) {
-                        System.out.println("\n💥 CRACK! " + pitchName + " TURNED ON! GONE! HOME RUN!");
-                        p.careerHits++;
-                        p.careerHrs++;
-                        int rbis = rng.nextInt(3) + 1;
-                        p.careerRbi += rbis;
-                        p.overallPoints += 45;
-                        p.hype += 15;
-                        System.out.println("Collected " + rbis + " RBI. Dugout goes wild!");
-                    } else if (outcomeRoll > 18) {
-                        System.out.println("\n⚾ Ripped into the right-center gap! Standing double!");
-                        p.careerHits++;
-                        int rbis = rng.nextInt(2);
-                        p.careerRbi += rbis;
-                        p.overallPoints += 25;
-                        p.hype += 8;
-                    } else if (outcomeRoll >= 4) {
-                        System.out.println("\n⚾ Hard grounder through the 5.5 hole for a clean single.");
-                        p.careerHits++;
-                        p.careerRbi += (rng.nextDouble() < 0.35) ? 1 : 0;
-                        p.overallPoints += 15;
-                        p.hype += 4;
-                    } else {
-                        System.out.println("\nWeak contact. Groundout to second base.");
-                    }
-                    return;
-                }
+    function executeTraining(type) {
+        player.energy -= 25;
+        if (type === 'cnt') {
+            let gain = Math.floor(Math.random() * 3) + 2;
+            player.contact += gain;
+            player.progress += 15;
+            logMessage(`Cage work dialed in. Contact +${gain}!`, "log-good");
+        } else if (type === 'pwr') {
+            let gain = Math.floor(Math.random() * 4) + 2;
+            player.power += gain;
+            if (Math.random() < 0.25 && player.speed > 35) {
+                player.speed -= 1;
+                logMessage(`Heavy squats! Power +${gain}, but lost 1 Speed to mass.`, "log-event");
             } else {
-                System.out.println("Caught watching! Umpire rings up a strike.");
-                strikes++;
+                logMessage(`Crushed the weight room! Power +${gain}!`, "log-good");
             }
+            player.progress += 15;
+        } else if (type === 'eye') {
+            let gain = Math.floor(Math.random() * 3) + 3;
+            player.discipline += gain;
+            player.progress += 20;
+            logMessage(`Studying pitch shapes. Discipline +${gain}!`, "log-good");
+        } else if (type === 'spd') {
+            let gain = Math.floor(Math.random() * 3) + 2;
+            player.speed += gain;
+            player.progress += 10;
+            logMessage(`Sprints completed. Speed +${gain}!`, "log-good");
         }
-
-        p.atBats++;
-        if (balls == 4) {
-            System.out.println("\n>> BALL FOUR! Tossed the bat aside and walked down to first.");
-            p.careerWalks++;
-            p.overallPoints += 12;
-            p.hype += 2;
-        } else {
-            System.out.println("\n>> STRIKE THREE! Down on strikes. Walk back to the dugout.");
-            p.hype = Math.max(0, p.hype - 3);
-        }
+        closeModal();
+        updateUI();
     }
 
-    private static void simulateFieldingPlay(Player p) {
-        System.out.println("\n[DEFENSIVE CHANCE] Sharp line drive hit into your coverage area!");
-        int diff = TIERS[p.tierIdx].pitcherDifficulty;
-        int check = p.fielding + p.speed / 2 + rng.nextInt(25);
-
-        if (check > diff) {
-            System.out.println("🧤 INCREDIBLE PLAY! You made the diving stop and threw across the diamond for the out!");
-            p.defensiveStops++;
-            p.overallPoints += 15;
-            p.hype += 6;
-        } else {
-            System.out.println("Tough hop eaten up. Ruled an infield hit/error.");
-        }
+    function triggerRest() {
+        let rec = Math.floor(Math.random() * 16) + 35;
+        player.energy = Math.min(100, player.energy + rec);
+        logMessage(`Ice bath, hydromassage, and 9 hours of sleep. Energy restored to ${player.energy}%.`, "log-good");
+        updateUI();
     }
 
-    private static void playGame(Player p) {
-        if (p.energy < 20) {
-            System.out.println("\nManager decided to give you a maintenance day off. Legs are heavy.");
+    function triggerClubEvent() {
+        if (player.energy < 10) {
+            logMessage("Too tired to participate in extracurricular events.", "log-bad");
             return;
         }
+        player.energy -= 10;
+        let eventId = Math.floor(Math.random() * 3);
 
-        p.energy -= 20;
-        System.out.println("\n>>> PLAY BALL! Game day in " + p.getCurrentTier() + "! <<<");
+        const modal = document.getElementById("interaction-modal");
+        modal.style.display = "block";
+        document.getElementById("modal-heading").innerText = "Off-Field Opportunity";
 
-        // 3 At Bats per game
-        for (int ab = 1; ab <= 3; ab++) {
-            System.out.println("\n[ Plate Appearance " + ab + " of 3 ]");
-            simulateAtBat(p);
-            try {
-                Thread.sleep(350);
-            } catch (InterruptedException ignored) {}
+        if (eventId === 0) {
+            document.getElementById("modal-body").innerHTML = `
+                <p>A regional sporting goods brand offers an endorsement deal.</p>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn primary" onclick="resolveEvent(0, true)">Accept (+$3,000, +5 Hype)</button>
+                    <button class="btn" onclick="resolveEvent(0, false)">Decline (Protect Brand)</button>
+                </div>
+            `;
+        } else if (eventId === 1) {
+            document.getElementById("modal-body").innerHTML = `
+                <p>Team veterans invite you out to an expensive dinner late at night.</p>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn primary" onclick="resolveEvent(1, true)">Attend (-15 Energy, +12 Hype, +XP)</button>
+                    <button class="btn" onclick="resolveEvent(1, false)">Hit the Film Room (+2 Eye)</button>
+                </div>
+            `;
+        } else {
+            document.getElementById("modal-body").innerHTML = `
+                <p>Analytics staff offers an advanced biomechanical bat-sensor consult.</p>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn primary" onclick="resolveEvent(2, true)">Pay $1,500 (+2 Contact, +2 Power)</button>
+                    <button class="btn" onclick="resolveEvent(2, false)">Stick to Natural Swing</button>
+                </div>
+            `;
+        }
+    }
+
+    function resolveEvent(id, choice) {
+        if (id === 0) {
+            if (choice) {
+                player.cash += 3000;
+                player.hype += 5;
+                logMessage("Endorsement signed! Cash deposited.", "log-good");
+            } else {
+                logMessage("Turned down the small-market endorsement.", "log-event");
+            }
+        } else if (id === 1) {
+            if (choice) {
+                player.energy = Math.max(0, player.energy - 15);
+                player.hype += 12;
+                player.progress += 10;
+                logMessage("Locker room respect earned from the veterans!", "log-good");
+            } else {
+                player.discipline += 2;
+                logMessage("Studied opponent release points. Discipline +2.", "log-good");
+            }
+        } else if (id === 2) {
+            if (choice && player.cash >= 1500) {
+                player.cash -= 1500;
+                player.contact += 2;
+                player.power += 2;
+                logMessage("Biometrics report unlocked smoother exit velocity! Contact +2, Power +2.", "log-good");
+            } else {
+                logMessage("Preserved bankroll and kept your classic mechanics.", "log-event");
+            }
+        }
+        closeModal();
+        updateUI();
+    }
+
+    // --- In-Game Live At-Bat Engine ---
+    let currentCount = { b: 0, s: 0 };
+    let currentPA = 1;
+
+    function openGameModal() {
+        if (player.energy < 20) {
+            logMessage("Manager benched you due to fatigue. Legs are dead!", "log-bad");
+            return;
+        }
+        player.energy -= 20;
+        currentPA = 1;
+        startAtBat();
+    }
+
+    function startAtBat() {
+        currentCount = { b: 0, s: 0 };
+        const modal = document.getElementById("interaction-modal");
+        modal.style.display = "block";
+        renderAtBatUI();
+    }
+
+    function renderAtBatUI() {
+        const diff = TIERS[player.tierIdx].difficulty;
+        document.getElementById("modal-heading").innerText = `Plate Appearance ${currentPA}/3 (vs. ${TIERS[player.tierIdx].name} - OVR ${diff})`;
+
+        document.getElementById("modal-body").innerHTML = `
+            <div class="pitch-box">Count: ${currentCount.b} - ${currentCount.s}</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+                <button class="btn" onclick="swing(1)">Contact Swing</button>
+                <button class="btn" onclick="swing(2)">Power Swing</button>
+                <button class="btn" onclick="takePitch()">Take Pitch</button>
+            </div>
+        `;
+    }
+
+    function takePitch() {
+        const diff = TIERS[player.tierIdx].difficulty;
+        let inZone = Math.random() < 0.62;
+
+        if (!inZone) {
+            let eyeRoll = player.discipline + (Math.random() * 25);
+            if (eyeRoll > (diff * 0.70)) {
+                currentCount.b++;
+                logMessage("Good take off the corner. Ball!", "log-event");
+            } else {
+                currentCount.s++;
+                logMessage("Chased a slider out of the zone! Strike.", "log-bad");
+            }
+        } else {
+            currentCount.s++;
+            logMessage("Called strike on the edge.", "log-bad");
         }
 
-        // 1 Defensive moment
-        simulateFieldingPlay(p);
-
-        // Check if stats qualified player for next level
-        p.checkPromotion();
+        checkCount();
     }
-}
+
+    function swing(type) {
+        const diff = TIERS[player.tierIdx].difficulty;
+        let isPower = type === 2;
+        let stat = isPower ? player.power : player.contact;
+        let penalty = isPower ? 18 : 5;
+
+        let roll = stat + (Math.random() * 40) - penalty;
+        let inZone = Math.random() < 0.65;
+        if (!inZone) roll -= 20;
+
+        let pitchQuality = diff + (Math.random() * 24 - 12);
+
+        if (roll < pitchQuality) {
+            currentCount.s++;
+            logMessage("Whiff! Swung through the pitch.", "log-bad");
+            checkCount();
+        } else {
+            // Ball in play
+            player.ab++;
+            let hitRoll = roll - pitchQuality + (Math.random() * 30);
+
+            if (isPower && hitRoll > 32) {
+                player.hits++;
+                player.hrs++;
+                let rbis = Math.floor(Math.random() * 3) + 1;
+                player.rbi += rbis;
+                player.progress += 45;
+                player.hype += 15;
+                logMessage(`🔥 CRUSHED TO DEAD CENTER! HOME RUN! (+${rbis} RBI)`, "log-good");
+            } else if (hitRoll > 18) {
+                player.hits++;
+                let rbis = Math.floor(Math.random() * 2);
+                player.rbi += rbis;
+                player.progress += 25;
+                player.hype += 8;
+                logMessage("⚾ Driven into the gap for extra bases!", "log-good");
+            } else if (hitRoll >= 4) {
+                player.hits++;
+                player.progress += 15;
+                player.hype += 4;
+                logMessage("⚾ Single through the hole in the infield.", "log-good");
+            } else {
+                logMessage("Routine ground ball to short. Thrown out.", "log-event");
+            }
+            advancePA();
+        }
+    }
+
+    function checkCount() {
+        if (currentCount.b >= 4) {
+            player.ab++;
+            player.walks++;
+            player.progress += 12;
+            player.hype += 2;
+            logMessage("Ball four! Drew the walk.", "log-good");
+            advancePA();
+        } else if (currentCount.s >= 3) {
+            player.ab++;
+            player.hype = Math.max(0, player.hype - 3);
+            logMessage("Strike three! Down on strikes.", "log-bad");
+            advancePA();
+        } else {
+            renderAtBatUI();
+        }
+    }
+
+    function advancePA() {
+        currentPA++;
+        if (currentPA <= 3) {
+            startAtBat();
+        } else {
+            // Simulate fielding play
+            let diff = TIERS[player.tierIdx].difficulty;
+            let fldCheck = player.fielding + (player.speed / 2) + (Math.random() * 25);
+            if (fldCheck > diff) {
+                player.stops++;
+                player.progress += 15;
+                player.hype += 5;
+                logMessage("🧤 Web Gem! Diving stop and throw across the diamond!", "log-good");
+            }
+            closeModal();
+            updateUI();
+        }
+    }
+
+    function closeModal() {
+        document.getElementById("interaction-modal").style.display = "none";
+    }
+
+    window.onload = function() {
+        selectArchetype(1);
+    };
+</script>
+</body>
+</html>
