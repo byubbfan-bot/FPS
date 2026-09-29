@@ -1,251 +1,306 @@
-"""
-Road to Cooperstown: An MLB Journey RPG
-A text-based career RPG tracking a prospect from the draft to MLB stardom.
-"""
+import java.util.Random;
+import java.util.Scanner;
 
-import random
-import sys
-import time
+public class Main {
 
+    static class Tier {
+        String name;
+        int threshold;
+        int pitcherDifficulty;
 
-TIERS = [
-    {"name": "Single-A", "threshold": 120, "pitcher_difficulty": 45},
-    {"name": "Double-A", "threshold": 260, "pitcher_difficulty": 60},
-    {"name": "Triple-A", "threshold": 420, "pitcher_difficulty": 75},
-    {"name": "MLB Majors", "threshold": 650, "pitcher_difficulty": 88},
-    {"name": "MLB All-Star", "threshold": 9999, "pitcher_difficulty": 95},
-]
+        Tier(String name, int threshold, int pitcherDifficulty) {
+            this.name = name;
+            this.threshold = threshold;
+            this.pitcherDifficulty = pitcherDifficulty;
+        }
+    }
 
+    static final Tier[] TIERS = {
+        new Tier("Single-A", 120, 45),
+        new Tier("Double-A", 260, 60),
+        new Tier("Triple-A", 420, 75),
+        new Tier("MLB Majors", 650, 88),
+        new Tier("MLB All-Star", 9999, 95)
+    };
 
-class Player:
-    def __init__(self, name: str, position: str):
-        self.name = name
-        self.position = position
-        self.contact = 45
-        self.power = 40
-        self.discipline = 40
-        self.speed = 50
+    static class Player {
+        String name;
+        String position;
+        int contact = 45;
+        int power = 40;
+        int discipline = 40;
+        int speed = 50;
 
-        self.energy = 100
-        self.hype = 10
-        self.career_hits = 0
-        self.career_hrs = 0
-        self.career_rbi = 0
-        self.at_bats = 0
-        self.overall_points = 0
-        self.tier_idx = 0
+        int energy = 100;
+        int hype = 10;
+        int careerHits = 0;
+        int careerHrs = 0;
+        int careerRbi = 0;
+        int atBats = 0;
+        int overallPoints = 0;
+        int tierIdx = 0;
 
-    @property
-    def current_tier(self) -> str:
-        return TIERS[self.tier_idx]["name"]
+        Player(String name, String position) {
+            this.name = name;
+            this.position = position;
+        }
 
-    @property
-    def batting_avg(self) -> float:
-        return (self.career_hits / self.at_bats) if self.at_bats > 0 else 0.000
+        String getCurrentTier() {
+            return TIERS[this.tierIdx].name;
+        }
 
-    def check_promotion(self) -> bool:
-        if self.tier_idx < len(TIERS) - 1:
-            req = TIERS[self.tier_idx]["threshold"]
-            if self.overall_points >= req:
-                self.tier_idx += 1
-                print("\n" + "=" * 56)
-                print(f"🚨 CALL-UP ALERT! You have been promoted to {self.current_tier}!")
-                print("=" * 56 + "\n")
-                return True
-        return False
+        double getBattingAvg() {
+            return (this.atBats > 0) ? ((double) this.careerHits / this.atBats) : 0.0;
+        }
 
+        boolean checkPromotion() {
+            if (this.tierIdx < TIERS.length - 1) {
+                int req = TIERS[this.tierIdx].threshold;
+                if (this.overallPoints >= req) {
+                    this.tierIdx++;
+                    System.out.println("\n========================================================");
+                    System.out.println("🚨 CALL-UP ALERT! You have been promoted to " + getCurrentTier() + "!");
+                    System.out.println("========================================================\n");
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
-def show_status(p: Player) -> None:
-    avg_str = f".{int(round(p.batting_avg * 1000)):03d}" if p.at_bats > 0 else ".000"
-    print("\n" + "=" * 50)
-    print(f"PLAYER: {p.name} | POS: {p.position} | LEVEL: {p.current_tier}")
-    print(f"ENERGY: {p.energy}/100 | HYPE: {p.hype} | PROGRESS PTS: {p.overall_points}")
-    print(f"STATS:  Contact: {p.contact} | Power: {p.power} | Eye: {p.discipline} | Speed: {p.speed}")
-    print(f"RECORD: {p.career_hits} H / {p.at_bats} AB ({avg_str}) | HR: {p.career_hrs} | RBI: {p.career_rbi}")
-    print("=" * 50)
+    private static final Random rng = new Random();
+    private static final Scanner scanner = new Scanner(System.in);
 
+    public static void main(String[] args) {
+        System.out.println("============================================================");
+        System.out.println("            ROAD TO COOPERSTOWN: AN MLB JOURNEY             ");
+        System.out.println("============================================================");
 
-def train(p: Player) -> None:
-    if p.energy < 25:
-        print("\nYou're exhausted. Rest first to avoid injury!")
-        return
+        System.out.print("Enter your prospect's name (Default: Kid Carter): ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) name = "Kid Carter";
 
-    print("\nSelect Training Focus:")
-    print("1. Cage Work (+Contact, +XP)")
-    print("2. Weight Room (+Power, -Speed risk)")
-    print("3. Video Study (+Discipline, +XP)")
-    print("4. Sprint Drills (+Speed)")
+        System.out.print("Enter position (e.g., SS, OF, 3B - Default: SS): ");
+        String pos = scanner.nextLine().trim().toUpperCase();
+        if (pos.isEmpty()) pos = "SS";
 
-    choice = input("> ").strip()
-    p.energy -= 25
+        Player player = new Player(name, pos);
+        System.out.println("\nDrafted in the MLB Draft! Assigned to Single-A ball.");
 
-    if choice == "1":
-        gain = random.randint(2, 4)
-        p.contact += gain
-        p.overall_points += 15
-        print(f"\nLocked in mechanics. Contact increased by +{gain}!")
-    elif choice == "2":
-        gain = random.randint(2, 5)
-        p.power += gain
-        if random.random() < 0.25 and p.speed > 35:
-            p.speed -= 1
-            print(f"\nHeavy sets finished. Power +{gain}, but lost 1 Speed to mass.")
-        else:
-            print(f"\nHeavy sets finished. Power +{gain}!")
-        p.overall_points += 15
-    elif choice == "3":
-        gain = random.randint(3, 5)
-        p.discipline += gain
-        p.overall_points += 20
-        print(f"\nStudied spin rates and tunnels. Discipline +{gain}!")
-    elif choice == "4":
-        gain = random.randint(2, 4)
-        p.speed += gain
-        p.overall_points += 10
-        print(f"\nExplosive ladder work. Speed +{gain}!")
-    else:
-        print("\nIndecision wasted the session. Energy spent without gains.")
+        boolean running = true;
+        while (running) {
+            if (player.tierIdx >= TIERS.length - 1 && player.overallPoints >= 900) {
+                System.out.println("\n************************************************************");
+                System.out.println("CONGRATULATIONS! " + player.name + " is an MLB All-Star and Legend!");
+                System.out.println("************************************************************");
+                showStatus(player);
+                break;
+            }
 
+            showStatus(player);
+            System.out.println("\nACTIONS:");
+            System.out.println("1. Play Game Day (-20 Energy)");
+            System.out.println("2. Facility Training (-25 Energy)");
+            System.out.println("3. Rest & Recovery");
+            System.out.println("4. Retire / Exit");
+            System.out.print("\nChoose action > ");
 
-def rest(p: Player) -> None:
-    recovered = random.randint(35, 50)
-    p.energy = min(100, p.energy + recovered)
-    print(f"\nIce bath and full sleep cycle completed. Energy restored to {p.energy}%.")
+            String choice = scanner.nextLine().trim();
+            switch (choice) {
+                case "1":
+                    playGame(player);
+                    break;
+                case "2":
+                    train(player);
+                    break;
+                case "3":
+                    rest(player);
+                    break;
+                case "4":
+                    System.out.println("\n" + player.name + " hung up the spikes. Thanks for playing!");
+                    running = false;
+                    break;
+                default:
+                    System.out.println("Invalid input. Please choose 1, 2, 3, or 4.");
+            }
+        }
+    }
 
+    private static void showStatus(Player p) {
+        int avgInt = (int) Math.round(p.getBattingAvg() * 1000);
+        String avgStr = String.format(".%03d", avgInt);
 
-def simulate_at_bat(p: Player) -> None:
-    diff = TIERS[p.tier_idx]["pitcher_difficulty"]
-    count_balls = 0
-    count_strikes = 0
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("PLAYER: " + p.name + " | POS: " + p.position + " | LEVEL: " + p.getCurrentTier());
+        System.out.println("ENERGY: " + p.energy + "/100 | HYPE: " + p.hype + " | PROGRESS PTS: " + p.overallPoints);
+        System.out.println("STATS:  Contact: " + p.contact + " | Power: " + p.power + " | Eye: " + p.discipline + " | Speed: " + p.speed);
+        System.out.println("RECORD: " + p.careerHits + " H / " + p.atBats + " AB (" + avgStr + ") | HR: " + p.careerHrs + " | RBI: " + p.careerRbi);
+        System.out.println("=".repeat(50));
+    }
 
-    print(f"\n--- Stepping in vs. {p.current_tier} Pitching (OVR {diff}) ---")
+    private static void train(Player p) {
+        if (p.energy < 25) {
+            System.out.println("\nYou're exhausted. Rest first to avoid injury!");
+            return;
+        }
 
-    while count_strikes < 3 and count_balls < 4:
-        pitch_in_zone = random.random() < 0.60
-        pitch_quality = random.randint(diff - 12, diff + 12)
+        System.out.println("\nSelect Training Focus:");
+        System.out.println("1. Cage Work (+Contact, +XP)");
+        System.out.println("2. Weight Room (+Power, -Speed risk)");
+        System.out.println("3. Video Study (+Discipline, +XP)");
+        System.out.println("4. Sprint Drills (+Speed)");
+        System.out.print("> ");
 
-        print(f"Count: {count_balls}-{count_strikes}")
-        print("1. Contact Swing | 2. Power Swing | 3. Take Pitch")
-        approach = input("Approach > ").strip()
+        String choice = scanner.nextLine().trim();
+        p.energy -= 25;
 
-        if approach == "3":
-            if not pitch_in_zone:
-                if (p.discipline + random.randint(1, 25)) > (diff * 0.72):
-                    print(">> Good take outside. Ball.")
-                    count_balls += 1
-                else:
-                    print(">> Chased out of the zone! Strike.")
-                    count_strikes += 1
-            else:
-                print(">> Called strike on the black.")
-                count_strikes += 1
+        switch (choice) {
+            case "1": {
+                int gain = rng.nextInt(3) + 2; // 2-4
+                p.contact += gain;
+                p.overallPoints += 15;
+                System.out.println("\nLocked in mechanics. Contact increased by +" + gain + "!");
+                break;
+            }
+            case "2": {
+                int gain = rng.nextInt(4) + 2; // 2-5
+                p.power += gain;
+                if (rng.nextDouble() < 0.25 && p.speed > 35) {
+                    p.speed -= 1;
+                    System.out.println("\nHeavy sets finished. Power +" + gain + ", but lost 1 Speed to muscle mass.");
+                } else {
+                    System.out.println("\nHeavy sets finished. Power +" + gain + "!");
+                }
+                p.overallPoints += 15;
+                break;
+            }
+            case "3": {
+                int gain = rng.nextInt(3) + 3; // 3-5
+                p.discipline += gain;
+                p.overallPoints += 20;
+                System.out.println("\nStudied release angles and pitch tunnels. Discipline +" + gain + "!");
+                break;
+            }
+            case "4": {
+                int gain = rng.nextInt(3) + 2; // 2-4
+                p.speed += gain;
+                p.overallPoints += 10;
+                System.out.println("\nExplosive base-running drills. Speed +" + gain + "!");
+                break;
+            }
+            default:
+                System.out.println("\nIndecision wasted the session. Energy spent without gains.");
+        }
+    }
 
-        elif approach in ["1", "2"]:
-            is_power = (approach == "2")
-            stat_mod = p.power if is_power else p.contact
-            penalty = 18 if is_power else 5
+    private static void rest(Player p) {
+        int recovered = rng.nextInt(16) + 35; // 35-50
+        p.energy = Math.min(100, p.energy + recovered);
+        System.out.println("\nIce bath and full night of sleep. Energy restored to " + p.energy + "%.");
+    }
 
-            roll = stat_mod + random.randint(1, 40) - penalty
-            if not pitch_in_zone:
-                roll -= 22
+    private static void simulateAtBat(Player p) {
+        int diff = TIERS[p.tierIdx].pitcherDifficulty;
+        int balls = 0;
+        int strikes = 0;
 
-            if roll < pitch_quality:
-                print(">> Swing and a miss!")
-                count_strikes += 1
-            else:
-                p.at_bats += 1
-                outcome_roll = roll - pitch_quality + random.randint(1, 30)
+        System.out.println("\n--- Stepping into the box vs. " + p.getCurrentTier() + " Pitching (OVR " + diff + ") ---");
 
-                if is_power and outcome_roll > 32:
-                    print("\n🔥 CRUSHED TO THE UPPER DECK! HOME RUN!")
-                    p.career_hits += 1
-                    p.career_hrs += 1
-                    p.career_rbi += random.randint(1, 3)
-                    p.overall_points += 45
-                    p.hype += 15
-                elif outcome_roll > 18:
-                    print("\n⚾ Driven into the gap for an extra-base hit!")
-                    p.career_hits += 1
-                    p.career_rbi += random.randint(0, 2)
-                    p.overall_points += 25
-                    p.hype += 8
-                elif outcome_roll >= 4:
-                    print("\n⚾ Hard grounder through the infield for a single.")
-                    p.career_hits += 1
-                    p.career_rbi += random.randint(0, 1)
-                    p.overall_points += 15
-                    p.hype += 4
-                else:
-                    print("\nSoft grounder to short. Thrown out at first.")
-                return
-        else:
-            print("Frozen looking! Strike called.")
-            count_strikes += 1
+        while (strikes < 3 && balls < 4) {
+            boolean pitchInZone = rng.nextDouble() < 0.60;
+            int pitchQuality = diff + (rng.nextInt(25) - 12);
 
-    p.at_bats += 1
-    if count_balls == 4:
-        print("\n>> Ball four! Walk drawn.")
-        p.overall_points += 10
-        p.hype += 2
-    else:
-        print("\n>> Strike three. Down on strikes.")
-        p.hype = max(0, p.hype - 3)
+            System.out.println("\nCount: " + balls + "-" + strikes);
+            System.out.println("1. Contact Swing | 2. Power Swing | 3. Take Pitch");
+            System.out.print("Approach > ");
+            String approach = scanner.nextLine().trim();
 
+            if (approach.equals("3")) {
+                if (!pitchInZone) {
+                    if ((p.discipline + (rng.nextInt(25) + 1)) > (diff * 0.72)) {
+                        System.out.println(">> Good take outside. Ball.");
+                        balls++;
+                    } else {
+                        System.out.println(">> Chased out of the zone! Strike.");
+                        strikes++;
+                    }
+                } else {
+                    System.out.println(">> Called strike on the corner.");
+                    strikes++;
+                }
+            } else if (approach.equals("1") || approach.equals("2")) {
+                boolean isPower = approach.equals("2");
+                int statMod = isPower ? p.power : p.contact;
+                int penalty = isPower ? 18 : 5;
 
-def play_game(p: Player) -> None:
-    if p.energy < 20:
-        print("\nManager benches you due to fatigue. Take a rest day.")
-        return
+                int roll = statMod + (rng.nextInt(40) + 1) - penalty;
+                if (!pitchInZone) roll -= 22;
 
-    p.energy -= 20
-    print(f"\nGame Day under the lights in {p.current_tier}!")
+                if (roll < pitchQuality) {
+                    System.out.println(">> Swing and a miss!");
+                    strikes++;
+                } else {
+                    p.atBats++;
+                    int outcomeRoll = roll - pitchQuality + (rng.nextInt(30) + 1);
 
-    for ab in range(1, 4):
-        print(f"\n[ Plate Appearance {ab}/3 ]")
-        simulate_at_bat(p)
-        time.sleep(0.3)
+                    if (isPower && outcomeRoll > 32) {
+                        System.out.println("\n🔥 CRUSHED TO THE UPPER DECK! HOME RUN!");
+                        p.careerHits++;
+                        p.careerHrs++;
+                        p.careerRbi += rng.nextInt(3) + 1;
+                        p.overallPoints += 45;
+                        p.hype += 15;
+                    } else if (outcomeRoll > 18) {
+                        System.out.println("\n⚾ Driven into the gap for extra bases!");
+                        p.careerHits++;
+                        p.careerRbi += rng.nextInt(3);
+                        p.overallPoints += 25;
+                        p.hype += 8;
+                    } else if (outcomeRoll >= 4) {
+                        System.out.println("\n⚾ Sharp ground ball through the infield for a single.");
+                        p.careerHits++;
+                        p.careerRbi += rng.nextInt(2);
+                        p.overallPoints += 15;
+                        p.hype += 4;
+                    } else {
+                        System.out.println("\nRoutine grounder to shortstop. Thrown out at first.");
+                    }
+                    return;
+                }
+            } else {
+                System.out.println("Frozen looking! Strike called.");
+                strikes++;
+            }
+        }
 
-    p.check_promotion()
+        p.atBats++;
+        if (balls == 4) {
+            System.out.println("\n>> Ball four! Walk drawn.");
+            p.overallPoints += 10;
+            p.hype += 2;
+        } else {
+            System.out.println("\n>> Strike three. Down on strikes.");
+            p.hype = Math.max(0, p.hype - 3);
+        }
+    }
 
+    private static void playGame(Player p) {
+        if (p.energy < 20) {
+            System.out.println("\nManager benched you today due to dead legs. Rest up.");
+            return;
+        }
 
-def main() -> None:
-    print("=" * 60)
-    print("        ROAD TO COOPERSTOWN: AN MLB JOURNEY        ")
-    print("=" * 60)
-    name = input("Enter prospect name (Default: Kid Carter): ").strip() or "Kid Carter"
-    pos = input("Enter position (Default: SS): ").strip().upper() or "SS"
+        p.energy -= 20;
+        System.out.println("\nGame Day under the lights in " + p.getCurrentTier() + "!");
 
-    player = Player(name, pos)
-    print(f"\nSelected in the MLB Draft! Assigned to Single-A ball.")
+        for (int ab = 1; ab <= 3; ab++) {
+            System.out.println("\n[ Plate Appearance " + ab + "/3 ]");
+            simulateAtBat(p);
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException ignored) {}
+        }
 
-    while True:
-        if player.tier_idx >= len(TIERS) - 1 and player.overall_points >= 900:
-            print("\n" + "*" * 60)
-            print(f"CONGRATULATIONS! {player.name} is an MLB All-Star and Hall-of-Famer!")
-            print("*" * 60)
-            show_status(player)
-            sys.exit(0)
-
-        show_status(player)
-        print("\nACTIONS:")
-        print("1. Play Game Day (-20 Energy)")
-        print("2. Facility Training (-25 Energy)")
-        print("3. Rest & Recovery")
-        print("4. Retire / Exit")
-
-        act = input("\nChoose action > ").strip()
-        if act == "1":
-            play_game(player)
-        elif act == "2":
-            train(player)
-        elif act == "3":
-            rest(player)
-        elif act == "4":
-            print(f"\n{player.name} has hung up the spikes. Final stats recorded.")
-            break
-        else:
-            print("Invalid input. Select 1, 2, 3, or 4.")
-
-
-if __name__ == "__main__":
-    main()
+        p.checkPromotion();
+    }
+}
